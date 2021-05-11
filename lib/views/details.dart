@@ -10,7 +10,7 @@ class DreamDetails extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: Theme.of(context).canvasColor,
+      color: Get.theme.canvasColor,
       child: Container(
         width: 640,
         alignment: Alignment.topCenter,
@@ -20,9 +20,9 @@ class DreamDetails extends StatelessWidget {
             AppBar(
             leading: IconButton(
               icon: Icon(Icons.arrow_back,
-                color: Theme.of(context).colorScheme.onSurface
+                color: Get.theme.colorScheme.onSurface
               ),
-              onPressed: () => Navigator.of(context).pop(null),
+              onPressed: () => Get.back(),
             ),
             actions: [
               IconButton(
@@ -30,7 +30,7 @@ class DreamDetails extends StatelessWidget {
                 onPressed: () => Get.offAndToNamed("/edit", arguments: dream)
               )
             ],
-            backgroundColor: Theme.of(context).canvasColor,
+            backgroundColor: Get.theme.canvasColor,
             elevation: 0,
           ),
           Row(children: [
@@ -39,7 +39,7 @@ class DreamDetails extends StatelessWidget {
               child: CircleAvatar(
                 radius: 32,
                 backgroundColor: dream.lucid ? Get.theme.primaryColor : Get.theme.disabledColor,
-                foregroundColor: Get.theme.textTheme.button!.color,
+                foregroundColor: Get.textTheme.button!.color,
                 child: dream.lucid ? Icon(Icons.cloud) : Icon(Icons.cloud_outlined)
               ),
             ),
@@ -50,11 +50,32 @@ class DreamDetails extends StatelessWidget {
                   dream.title,
                   overflow: TextOverflow.ellipsis,
                   maxLines: null,
-                  style: Theme.of(context).textTheme.headline4
+                  style: Get.textTheme.headline4
                 )
               ),
             ),
           ],),
+          Container(
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              width: 999999999,
+              child: Material(
+                elevation: 2,
+                type: MaterialType.card,
+                color: Get.theme.cardColor,
+                borderRadius: BorderRadius.all(Radius.circular(0)),
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children:[
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Text("Summary", 
+                      style: Get.textTheme.subtitle1?.copyWith(fontWeight: FontWeight.w700)),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Text(dream.body)//Text(room.topic, style: Get.textTheme.bodyText2),
+                  )
+                ])
+              )
+            ),
           ]
         ))
       )

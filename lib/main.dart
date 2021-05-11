@@ -35,6 +35,7 @@ class MyApp extends StatelessWidget {
         canvasColor: Color.fromARGB(255, 0, 0, 20),
         scaffoldBackgroundColor: Color.fromARGB(255, 0, 0, 20),
         accentColor: Colors.amber,
+        cardColor: Color.fromARGB(255, 7, 0, 37),
         floatingActionButtonTheme: FloatingActionButtonThemeData(
           backgroundColor: Colors.amber
         ),
@@ -44,6 +45,7 @@ class MyApp extends StatelessWidget {
         canvasColor: Colors.black,
         scaffoldBackgroundColor: Colors.black,
         accentColor: Colors.amber,
+        cardColor: Colors.grey[900],
         floatingActionButtonTheme: FloatingActionButtonThemeData(
           backgroundColor: Colors.amber
         ),
@@ -53,8 +55,25 @@ class MyApp extends StatelessWidget {
         GetPage(name: "/", page: () => DreamListScreen()),
         GetPage(name: "/settings", page: () => SettingsRoot()),
         GetPage(name: "/new", page: () => DreamEdit(mode: DreamEditMode.create)),
-        GetPage(name: "/details", page: () => DreamDetails(Get.arguments as DreamRecord), transition: Transition.downToUp, opaque: false)
+        GetPage(name: "/details", page: () => middleSegment(DreamDetails(Get.arguments as DreamRecord)), transition: Transition.fadeIn, opaque: false)
       ],
     );
   }
+}
+
+Widget middleSegment(Widget child) {
+  return Stack(
+    alignment: Alignment.center,
+    children: [
+      Container(
+        alignment: Alignment.center,
+        color: Colors.black54.withOpacity(0.7),
+      ),
+      Container(
+        child: child,
+        width: 720,
+        alignment: Alignment.topCenter,
+      ),
+    ],
+  );
 }
