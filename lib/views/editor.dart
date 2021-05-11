@@ -1,0 +1,110 @@
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:introduction_screen/introduction_screen.dart';
+import 'package:journal/db/dream.dart';
+import 'package:journal/main.dart';
+import 'package:objectdb/objectdb.dart';
+
+class DreamEdit extends StatefulWidget {
+  final DreamRecord? dream;
+  final DreamEditMode mode;
+  DreamEdit({
+    Key? key,
+    this.dream,
+    required this.mode
+  }) : super(key: key);
+
+  @override
+  _DreamEditState createState() => _DreamEditState();
+}
+
+class _DreamEditState extends State<DreamEdit> {
+  late final TextEditingController titleController;
+  late final TextEditingController summaryController;
+  bool isDreamLucid = false;
+  bool isDreamWild = false;
+
+  @override
+  void initState() {
+    titleController = TextEditingController(text: widget.dream?.title ?? "");
+    summaryController = TextEditingController(text: widget.dream?.body ?? "");
+    isDreamLucid = widget.dream?.lucid ?? isDreamLucid;
+    isDreamWild = widget.dream?.wild ?? isDreamWild;
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return IntroductionScreen(
+      globalBackgroundColor: Get.theme.canvasColor,
+      pages: [
+        PageViewModel(
+          title: widget.mode == DreamEditMode.create ? "Record your dream!"
+          : widget.mode == DreamEditMode.complete ? "Review this information"
+          : "",
+          bodyWidget: SingleChildScrollView(
+            child: Column(
+              children: [
+                TextField(
+                  controller: titleController, 
+                  decoration: InputDecoration(
+                    labelText: "Title",
+                    hintText: "Titles help you distinguish dreams.",
+                  ),
+                  keyboardAppearance: Brightness.dark,
+                  keyboardType: TextInputType.text,
+                ),
+                TextField(
+                  controller: summaryController, 
+                  decoration: InputDecoration(
+                    labelText: "Summary, plot, or body",
+                    hintText: "Write more about a dream!"
+                  ),
+                  keyboardAppearance: Brightness.dark,
+                  keyboardType: TextInputType.multiline,
+                  minLines: 5,
+                  maxLines: null,
+                )
+              ],
+            ),
+          )
+        ),
+        PageViewModel(
+          title: "",
+          bodyWidget: Column(children: [
+            SwitchListTile(
+              title: Text("Was this dream lucid?"),
+              subtitle: Text("Were you aware you were dreaming? If you don't know, don't touch this."),
+              value: isDreamLucid, 
+              onChanged: (newValue) => setState(() => isDreamLucid = newValue)
+            ),
+            if (isDreamLucid) SwitchListTile(
+              title: Text("Was this lucid dream wake-induced?"),
+              value: isDreamWild,
+              onChanged: (newValue) => setState(() => isDreamWild = newValue)
+            ),
+          ])
+        )
+      ],
+      next: Text("Next"),
+      done: Text(widget.mode == DreamEditMode.create ? "Create" : "Update"),
+      onDone: () async {
+        var newData = {
+          "title": titleController.value.text,
+          "body": summaryController.value.text,
+          "lucid": isDreamLucid,
+          "wild": isDreamWild,
+        };
+        if (widget.mode == DreamEditMode.create) database.insert(newData);
+        else await database.update({"id": widget.dream!.id}, newData);
+        Get.offAllNamed("/");
+      },
+    );
+  }
+}
+
+enum DreamEditMode {
+  create,
+  edit,
+  complete
+}
