@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -16,7 +17,7 @@ late final Directory platformStorageDir;
 late final ObjectDB database;
 
 void main() async {
-  platformStorageDir = GetPlatform.isAndroid ? await getApplicationSupportDirectory()
+  platformStorageDir = GetPlatform.isAndroid ? await getApplicationDocumentsDirectory()
     : GetPlatform.isLinux ? await getApplicationDocumentsDirectory()
     : GetPlatform.isIOS ? await getApplicationDocumentsDirectory()
     : await getApplicationSupportDirectory().catchError((_) => Future.value(Directory("")));
@@ -77,3 +78,8 @@ Widget middleSegment(Widget child) {
     ],
   );
 }
+
+final purpleGradient = LinearGradient(
+  colors: [Colors.purple, Colors.deepPurple], 
+  transform: GradientRotation(1.5*pi)
+);

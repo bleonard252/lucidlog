@@ -83,10 +83,7 @@ class _Entry extends StatelessWidget {
       title: Text(dream.title),
       subtitle: Text(dream.body),
       leading: dream.lucid ? GradientIcon(
-        Icons.cloud, 24, LinearGradient(
-          colors: [Colors.purple, Colors.deepPurple], 
-          transform: GradientRotation(1.5*pi)
-        )) : Icon(Icons.cloud_outlined),
+        Icons.cloud, 24, purpleGradient) : Icon(Icons.cloud_outlined),
       onTap: () => Get.toNamed("/details", arguments: dream),
     );
   }

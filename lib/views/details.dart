@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:journal/db/dream.dart';
+import 'package:journal/main.dart';
 
 class DreamDetails extends StatelessWidget {
   final DreamRecord dream;
@@ -36,10 +37,15 @@ class DreamDetails extends StatelessWidget {
           Row(children: [
             Container(
               padding: EdgeInsets.only(left: 24),
-              child: CircleAvatar(
-                radius: 32,
-                backgroundColor: dream.lucid ? Get.theme.primaryColor : Get.theme.disabledColor,
-                foregroundColor: Get.textTheme.button!.color,
+              child: Container(
+                width: 56, height: 56,
+                //radius: 32,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.all(Radius.circular(32)),
+                  gradient: purpleGradient
+                ),
+                //backgroundColor: dream.lucid ? Get.theme.primaryColor : Get.theme.disabledColor,
+                //foregroundColor: Get.textTheme.button!.color,
                 child: dream.lucid ? Icon(Icons.cloud) : Icon(Icons.cloud_outlined)
               ),
             ),
