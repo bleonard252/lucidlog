@@ -13,7 +13,8 @@ class DreamDetails extends StatelessWidget {
   
   @override
   Widget build(BuildContext context) {
-    var _dateFormat = sharedPreferences.getString("date-format");
+    var _dateFormat = sharedPreferences.containsKey("datetime-format")
+      ? sharedPreferences.getString("datetime-format") : DateTimeFormats.commonLogFormat;
     return Material(
       color: Get.theme.canvasColor,
       child: Container(
@@ -111,11 +112,7 @@ class DreamDetails extends StatelessWidget {
                   if (dream.timestamp != DreamRecord.dtzero) ListTile(
                     leading: Icon(Icons.calendar_today),
                     title: Text("Date and Time"),
-                    subtitle: Text(dream.timestamp.format(
-                        _dateFormat == "american" ? AmericanDateTimeFormats.abbrDayOfWeek
-                        : _dateFormat == "european" ? DateTimeFormats.europeanAbbr
-                        : DateTimeFormats.commonLogFormat
-                      ), 
+                    subtitle: Text(dream.timestamp.format(_dateFormat ?? DateTimeFormats.commonLogFormat), 
                       maxLines: 1, overflow: TextOverflow.ellipsis, softWrap: false),
                   ),
                 ]))

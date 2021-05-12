@@ -36,6 +36,10 @@ class DreamRecord {
   // LucidDreamMethod? get method => _document["method"];
   // set method(LucidDreamMethod value) => _database.update(_document, {"method": value});
 
+  Future<int> delete() {
+    return database.remove({"_id": id});
+  }
+
   /// Tags the user has applied to this dream.
   List<String> get tags => _document["tags"] ?? [];
   set tags(List<String> value) => database.update(_document, {"tags": value});

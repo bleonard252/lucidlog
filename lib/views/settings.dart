@@ -1,3 +1,4 @@
+import 'package:date_time_format/date_time_format.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences_settings/shared_preferences_settings.dart' as Settings;
@@ -24,8 +25,10 @@ class SettingsRoot extends StatelessWidget {
           icon: Icon(Icons.date_range),
           defaultKey: "american",
           values: {
-            "american": "Wed May 12 2021  2:34 pm",
-            "european": "5 Nov 2019 19:42"
+            AmericanDateTimeFormats.abbrDayOfWeekAbbr: "Tue Nov 5, 2019 7:42 pm",
+            EuropeanDateTimeFormats.abbrDayOfWeekAbbr: "Tue 5 Nov 2019 19:42",
+            AmericanDateTimeFormats.short: "11/05/2019 7:42 pm",
+            EuropeanDateTimeFormats.short: "05/11/2019 19:42"
           },
         )
       ]

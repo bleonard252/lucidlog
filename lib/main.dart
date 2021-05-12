@@ -22,6 +22,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   sharedPreferences = await SharedPreferences.getInstance();
   if (!sharedPreferences.containsKey("amoled-dark")) sharedPreferences.setBool("amoled-dark", false);
+  if (!sharedPreferences.containsKey("datetime-format")) sharedPreferences.setString("datetime-format", "american");
   final _androidStorageOne = Directory("/storage/emulated/0/Documents");
   platformStorageDir = GetPlatform.isAndroid ? _androidStorageOne.existsSync() ? _androidStorageOne
       : _androidStorageOne //TODO: more paths!

@@ -55,10 +55,26 @@ class _DreamEditState extends State<DreamEdit> {
                   Expanded(child: Container()),
                   if (widget.mode == DreamEditMode.complete || widget.mode == DreamEditMode.edit)
                     TextButton.icon(
-                      onPressed: () => {},
+                      onPressed: () async {
+                        var _do = await Get.dialog(AlertDialog(
+                          title: Text("Are you sure?"),
+                          content: Text("Are you sure you want to delete this journal entry?"),
+                          actions: [
+                            TextButton(onPressed: () => Get.back(result: true), child: Text("YES")),
+                            TextButton(onPressed: () => Get.back(result: false), child: Text("NO")),
+                          ],
+                        ));
+                        if (!_do) return;
+                        await widget.dream?.delete();
+                        Get.offAllNamed("/");
+                      },
                       icon: Icon(Icons.delete_outline),
                       label: Text("Delete"),
-                      style: ButtonStyle(foregroundColor: _Red()),
+                      style: ButtonStyle(
+                        foregroundColor: _Red(),
+                        overlayColor: MaterialStateProperty.all(Colors.red.withAlpha(40)),
+                        padding: MaterialStateProperty.all(EdgeInsets.all(24.0))
+                      ),
                     ),
                 ]),
                 TextField(
