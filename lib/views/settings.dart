@@ -11,7 +11,7 @@ class SettingsRoot extends StatelessWidget {
         Settings.SwitchSettingsTile(
           title: "AMOLED Dark Mode",
           settingKey: "amoled-dark",
-          icon: Icon(Icons.nights_stay)
+          icon: Icon(Icons.nights_stay),
         ),
         // if (!GetPlatform.isIOS) Settings.SettingsTile(
         //   title: "Log Storage Filename",

@@ -7,6 +7,7 @@ import 'package:journal/db/dream.dart';
 import 'package:journal/empty_state.dart';
 import 'package:journal/main.dart';
 import 'package:journal/widgets/gradienticon.dart';
+import 'package:mdi/mdi.dart';
 import 'package:objectdb/objectdb.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -82,8 +83,9 @@ class _Entry extends StatelessWidget {
     return ListTile(
       title: Text(dream.title),
       subtitle: Text(dream.body),
-      leading: dream.lucid ? GradientIcon(
-        Icons.cloud, 24, purpleGradient) : Icon(Icons.cloud_outlined),
+      leading: dream.lucid ? dream.wild ? GradientIcon(Mdi.weatherLightning, 24, goldGradient)
+      : GradientIcon(Icons.cloud, 24, purpleGradient) 
+      : Icon(Icons.cloud_outlined),
       onTap: () => Get.toNamed("/details", arguments: dream),
     );
   }

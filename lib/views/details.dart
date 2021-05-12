@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:journal/db/dream.dart';
 import 'package:journal/main.dart';
+import 'package:mdi/mdi.dart';
 
 class DreamDetails extends StatelessWidget {
   final DreamRecord dream;
@@ -42,11 +43,14 @@ class DreamDetails extends StatelessWidget {
                 //radius: 32,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.all(Radius.circular(32)),
-                  gradient: purpleGradient
+                  gradient: dream.lucid ? dream.wild ? goldGradient : purpleGradient : null,
+                  color: Colors.grey
                 ),
                 //backgroundColor: dream.lucid ? Get.theme.primaryColor : Get.theme.disabledColor,
                 //foregroundColor: Get.textTheme.button!.color,
-                child: dream.lucid ? Icon(Icons.cloud) : Icon(Icons.cloud_outlined)
+                child: dream.lucid ? 
+                  dream.wild ? Icon(Mdi.weatherLightning) 
+                : Icon(Icons.cloud) : Icon(Icons.cloud_outlined)
               ),
             ),
             Expanded(

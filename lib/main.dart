@@ -37,7 +37,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GetMaterialApp(
-      title: 'Flutter Demo',
+      title: 'Dream Journal',
       theme: ThemeData.dark().copyWith(
         primaryColor: Colors.purple,
         canvasColor: Color.fromARGB(255, 0, 0, 20),
@@ -90,5 +90,9 @@ Widget middleSegment(Widget child) {
 
 final purpleGradient = LinearGradient(
   colors: [Colors.purple, Colors.deepPurple], 
+  transform: GradientRotation(1.5*pi)
+);
+final goldGradient = LinearGradient(
+  colors: [Colors.amber, Colors.orange], 
   transform: GradientRotation(1.5*pi)
 );

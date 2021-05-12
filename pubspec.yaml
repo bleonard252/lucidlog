@@ -28,6 +28,7 @@ dependencies:
     path: vendor/shared_preferences_settings
   #shared_preferences_linux: ^2.0.0
   introduction_screen: ^2.1.0
+  mdi: ^5.0.0-nullsafety.0
   flutter:
     sdk: flutter
 
