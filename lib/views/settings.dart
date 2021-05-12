@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:shared_preferences_settings/shared_preferences_settings.dart' as Settings;
 
 class SettingsRoot extends StatelessWidget {
@@ -11,7 +12,12 @@ class SettingsRoot extends StatelessWidget {
           title: "AMOLED Dark Mode",
           settingKey: "amoled-dark",
           icon: Icon(Icons.nights_stay)
-        )
+        ),
+        // if (!GetPlatform.isIOS) Settings.SettingsTile(
+        //   title: "Log Storage Filename",
+        //   subtitle: "This will NOT move the file! ALL YOUR DATA WILL BE LOST!",
+        //   icon: Icon(Icons.folder),
+        // )
       ]
     );
   }

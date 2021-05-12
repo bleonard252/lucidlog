@@ -12,11 +12,16 @@ import 'package:objectdb/objectdb.dart';
 // ignore: implementation_imports
 import 'package:objectdb/src/objectdb_storage_filesystem.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 late final Directory platformStorageDir;
 late final ObjectDB database;
+late final SharedPreferences sharedPreferences;
 
 void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  sharedPreferences = await SharedPreferences.getInstance();
+  if (!sharedPreferences.containsKey("amoled-dark")) sharedPreferences.setBool("amoled-dark", false);
   final _androidStorageOne = Directory("/storage/emulated/0/Documents");
   platformStorageDir = GetPlatform.isAndroid ? _androidStorageOne.existsSync() ? _androidStorageOne
       : _androidStorageOne //TODO: more paths!
@@ -53,6 +58,8 @@ class MyApp extends StatelessWidget {
           backgroundColor: Colors.amber
         ),
       ),
+      themeMode: sharedPreferences.getBool("amoled-dark") ?? false 
+        ? ThemeMode.dark : ThemeMode.light,
       initialRoute: "/",
       getPages: [
         GetPage(name: "/", page: () => DreamListScreen()),
