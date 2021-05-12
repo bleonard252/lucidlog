@@ -4,6 +4,7 @@ import 'package:introduction_screen/introduction_screen.dart';
 import 'package:journal/db/dream.dart';
 import 'package:journal/main.dart';
 import 'package:objectdb/objectdb.dart';
+import 'package:date_field/date_field.dart';
 
 class DreamEdit extends StatefulWidget {
   final DreamRecord? dream;
@@ -23,6 +24,7 @@ class _DreamEditState extends State<DreamEdit> {
   late final TextEditingController summaryController;
   bool isDreamLucid = false;
   bool isDreamWild = false;
+  DateTime dateValue = DateTime.now();
 
   @override
   void initState() {
@@ -30,6 +32,7 @@ class _DreamEditState extends State<DreamEdit> {
     summaryController = TextEditingController(text: widget.dream?.body ?? "");
     isDreamLucid = widget.dream?.lucid ?? isDreamLucid;
     isDreamWild = widget.dream?.wild ?? isDreamWild;
+    dateValue = widget.dream?.timestamp ?? dateValue;
     super.initState();
   }
 
@@ -37,6 +40,8 @@ class _DreamEditState extends State<DreamEdit> {
   Widget build(BuildContext context) {
     return IntroductionScreen(
       globalBackgroundColor: Get.theme.canvasColor,
+      dotsDecorator: DotsDecorator(activeColor: Get.theme.primaryColor),
+      color: Get.theme.primaryColor,
       pages: [
         PageViewModel(
           title: widget.mode == DreamEditMode.create ? "Record your dream!"
@@ -53,6 +58,14 @@ class _DreamEditState extends State<DreamEdit> {
                   ),
                   keyboardAppearance: Brightness.dark,
                   keyboardType: TextInputType.text,
+                ),
+                DateTimeField(
+                  onDateSelected: (value) => dateValue, 
+                  selectedDate: dateValue,
+                  mode: DateTimeFieldPickerMode.dateAndTime,
+                  decoration: InputDecoration(
+                    labelText: "Date and time"
+                  ),
                 ),
                 TextField(
                   controller: summaryController, 
@@ -92,6 +105,7 @@ class _DreamEditState extends State<DreamEdit> {
         var newData = {
           "title": titleController.value.text,
           "body": summaryController.value.text,
+          "timestamp": dateValue.millisecondsSinceEpoch,
           "lucid": isDreamLucid,
           "wild": isDreamWild,
         };

@@ -27,6 +27,11 @@ class DreamRecord {
   bool get wild => _document["wild"] ?? false;
   set wild(bool value) => database.update(_document, {"wild": value});
 
+  /// The date and time at which this dream was recorded.
+  DateTime get timestamp => DateTime.fromMillisecondsSinceEpoch(_document.containsKey("timestamp") ? _document["timestamp"] : 0);
+  set timestamp(DateTime value) => database.update(_document, {"timestamp": value.millisecondsSinceEpoch});
+  static final dtzero = DateTime.fromMillisecondsSinceEpoch(0);
+
   // /// The method used.
   // LucidDreamMethod? get method => _document["method"];
   // set method(LucidDreamMethod value) => _database.update(_document, {"method": value});
