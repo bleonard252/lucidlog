@@ -18,6 +18,16 @@ class SettingsRoot extends StatelessWidget {
         //   subtitle: "This will NOT move the file! ALL YOUR DATA WILL BE LOST!",
         //   icon: Icon(Icons.folder),
         // )
+        Settings.RadioSettingsTile(
+          settingKey: "datetime-format",
+          title: "Date format",
+          icon: Icon(Icons.date_range),
+          defaultKey: "american",
+          values: {
+            "american": "Wed May 12 2021  2:34 pm",
+            "european": "5 Nov 2019 19:42"
+          },
+        )
       ]
     );
   }

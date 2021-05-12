@@ -65,6 +65,7 @@ class MyApp extends StatelessWidget {
         GetPage(name: "/", page: () => DreamListScreen()),
         GetPage(name: "/settings", page: () => SettingsRoot()),
         GetPage(name: "/new", page: () => DreamEdit(mode: DreamEditMode.create)),
+        GetPage(name: "/edit", page: () => DreamEdit(mode: DreamEditMode.edit, dream: Get.arguments as DreamRecord)),
         GetPage(name: "/details", page: () => middleSegment(DreamDetails(Get.arguments as DreamRecord)), transition: Transition.fadeIn, opaque: false)
       ],
     );

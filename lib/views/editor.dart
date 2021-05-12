@@ -50,6 +50,17 @@ class _DreamEditState extends State<DreamEdit> {
           bodyWidget: SingleChildScrollView(
             child: Column(
               children: [
+                Row(children: [
+                  IconButton(onPressed: Get.back, icon: Icon(Icons.arrow_back)),
+                  Expanded(child: Container()),
+                  if (widget.mode == DreamEditMode.complete || widget.mode == DreamEditMode.edit)
+                    TextButton.icon(
+                      onPressed: () => {},
+                      icon: Icon(Icons.delete_outline),
+                      label: Text("Delete"),
+                      style: ButtonStyle(foregroundColor: _Red()),
+                    ),
+                ]),
                 TextField(
                   controller: titleController, 
                   decoration: InputDecoration(
@@ -60,7 +71,7 @@ class _DreamEditState extends State<DreamEdit> {
                   keyboardType: TextInputType.text,
                 ),
                 DateTimeField(
-                  onDateSelected: (value) => dateValue, 
+                  onDateSelected: (value) {dateValue = value; setState(() {});}, 
                   selectedDate: dateValue,
                   mode: DateTimeFieldPickerMode.dateAndTime,
                   decoration: InputDecoration(
@@ -121,4 +132,19 @@ enum DreamEditMode {
   create,
   edit,
   complete
+}
+
+class _Red extends MaterialStateColor {
+  static Color _defaultColor = Colors.red;
+  static Color _pressedColor = Colors.red[700]!;
+
+  const _Red() : super(0xfff44336);
+
+  @override
+  Color resolve(Set<MaterialState> states) {
+    if (states.contains(MaterialState.pressed)) {
+      return _pressedColor;
+    }
+    return _defaultColor;
+  }
 }

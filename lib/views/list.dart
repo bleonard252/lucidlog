@@ -21,14 +21,17 @@ class _DreamListScreenState extends State<DreamListScreen> {
   bool isListInitialized = false;
 
   Future<void> reloadDreamList() {
-    return database.find({}).then<void>((value) {
+    return database.find({}).then<void>((value) async {
       List<DreamRecord> _list = [];
+      List<Future> _futures = [];
       value.forEach((element) {
         var _ = DreamRecord(element["_id"], database: database);
-        _.loadDocument();
+        _futures.add(_.loadDocument());
         _list.add(_);
       });
-      list = _list;
+      await Future.wait(_futures);
+      _list.sort((a, b) => a.timestamp.compareTo(b.timestamp));
+      list = _list.reversed.toList();
       isListInitialized = true;
       setState(() {});
     });
