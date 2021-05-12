@@ -81,13 +81,13 @@ class _Entry extends StatelessWidget {
   
   @override
   Widget build(BuildContext context) {
-    return ListTile(
+    return Column(children: [ListTile(
       title: Text(dream.title),
-      subtitle: Text(dream.body),
+      subtitle: Text(dream.body, maxLines: 5, overflow: TextOverflow.fade),
       leading: dream.lucid ? dream.wild ? GradientIcon(Mdi.weatherLightning, 24, goldGradient)
       : GradientIcon(Icons.cloud, 24, purpleGradient) 
       : Icon(Icons.cloud_outlined),
       onTap: () => Get.toNamed("/details", arguments: dream),
-    );
+    ), Divider(height: 1)]);
   }
 }
