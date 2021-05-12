@@ -48,8 +48,6 @@ class _DreamListScreenState extends State<DreamListScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text("Dream Journal"),
-        shadowColor: Get.theme.primaryColor,
-        backgroundColor: Get.theme.canvasColor,
         actions: [
           IconButton(
             icon: Icon(Icons.settings),

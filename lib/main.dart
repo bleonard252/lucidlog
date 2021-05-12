@@ -37,27 +37,49 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
+    var _theme = ({Color? surfaceColor, Color? cardColor}) => ThemeData.dark().copyWith(
+      canvasColor: surfaceColor,
+      scaffoldBackgroundColor: surfaceColor,
+      cardColor: cardColor,
+      primaryColor: Colors.purple,
+      accentColor: Colors.amber,
+      floatingActionButtonTheme: FloatingActionButtonThemeData(
+        backgroundColor: Colors.amber
+      ),
+      appBarTheme: AppBarTheme(
+        backgroundColor: surfaceColor,
+        shadowColor: Colors.purple
+      ),
+      buttonTheme: ButtonThemeData(
+        padding: EdgeInsets.all(16.0),
+        colorScheme: ColorScheme.fromSwatch(
+          primarySwatch: Colors.purple,
+          accentColor: Colors.amber
+        )
+      ),
+      switchTheme: SwitchThemeData(
+        thumbColor: MaterialStateProperty.resolveWith((states) {
+          if (states.contains(MaterialState.selected)) return Colors.amber;
+        }),
+        trackColor: MaterialStateProperty.resolveWith((states) {
+          if (states.contains(MaterialState.selected)) return Colors.amberAccent;
+        }),
+      ),
+      radioTheme: RadioThemeData(
+        fillColor: MaterialStateProperty.resolveWith((states) {
+          if (states.contains(MaterialState.selected)) return Colors.amber;
+        }),
+      )
+    );
     return GetMaterialApp(
       title: 'Dream Journal',
-      theme: ThemeData.dark().copyWith(
-        primaryColor: Colors.purple,
-        canvasColor: Color.fromARGB(255, 0, 0, 20),
-        scaffoldBackgroundColor: Color.fromARGB(255, 0, 0, 20),
-        accentColor: Colors.amber,
+      theme: _theme(
+        surfaceColor: Color.fromARGB(255, 0, 0, 20),
         cardColor: Color.fromARGB(255, 7, 0, 37),
-        floatingActionButtonTheme: FloatingActionButtonThemeData(
-          backgroundColor: Colors.amber
-        ),
       ),
-      darkTheme: ThemeData.dark().copyWith(
-        primaryColor: Colors.purple,
-        canvasColor: Colors.black,
-        scaffoldBackgroundColor: Colors.black,
-        accentColor: Colors.amber,
-        cardColor: Colors.grey[900],
-        floatingActionButtonTheme: FloatingActionButtonThemeData(
-          backgroundColor: Colors.amber
-        ),
+      darkTheme: _theme(
+        surfaceColor: Colors.black,
+        cardColor: Colors.grey[900]!
       ),
       themeMode: sharedPreferences.getBool("amoled-dark") ?? false 
         ? ThemeMode.dark : ThemeMode.light,
