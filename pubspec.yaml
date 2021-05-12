@@ -24,7 +24,9 @@ dependencies:
   get: ^4.1.4
   objectdb: ^1.2.1
   path_provider: ^2.0.1
-  shared_preferences_settings: ^1.2.0
+  shared_preferences_settings: 
+    path: vendor/shared_preferences_settings
+  #shared_preferences_linux: ^2.0.0
   introduction_screen: ^2.1.0
   flutter:
     sdk: flutter
@@ -41,6 +43,13 @@ dev_dependencies:
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
+
+flutter_icons:
+  android: true
+  ios: true
+  image_path: "assets/ic_launcher.png"
+  adaptive_icon_background: '#000034'
+  adaptive_icon_foreground: "assets/ic_launcher.png"
 
 # The following section is specific to Flutter.
 flutter:

@@ -17,7 +17,9 @@ late final Directory platformStorageDir;
 late final ObjectDB database;
 
 void main() async {
-  platformStorageDir = GetPlatform.isAndroid ? await getApplicationDocumentsDirectory()
+  final _androidStorageOne = Directory("/storage/emulated/0/Documents");
+  platformStorageDir = GetPlatform.isAndroid ? _androidStorageOne.existsSync() ? _androidStorageOne
+      : _androidStorageOne //TODO: more paths!
     : GetPlatform.isLinux ? await getApplicationDocumentsDirectory()
     : GetPlatform.isIOS ? await getApplicationDocumentsDirectory()
     : await getApplicationSupportDirectory().catchError((_) => Future.value(Directory("")));

@@ -1,0 +1,3 @@
+[submodule "vendor/shared_preferences_settings"]
+	path = vendor/shared_preferences_settings
+	url = https://github.com/BarthaBRW/shared_preferences_settings
