@@ -1,6 +1,7 @@
 import 'package:date_time_format/date_time_format.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:journal/notifications.dart';
 import 'package:shared_preferences_settings/shared_preferences_settings.dart' as Settings;
 
 class SettingsRoot extends StatelessWidget {
@@ -30,6 +31,16 @@ class SettingsRoot extends StatelessWidget {
             AmericanDateTimeFormats.short: "11/05/2019 7:42 pm",
             EuropeanDateTimeFormats.short: "05/11/2019 19:42"
           },
+        ),
+        Settings.SettingsTileGroup(
+          title: "Notifications",
+          children: [
+            ListTile(
+              title: Text("Test Notification"),
+              leading: Icon(Icons.notifications_active),
+              onTap: () => RealityCheck.schedule(),
+            )
+          ],
         )
       ]
     );

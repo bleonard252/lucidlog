@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:get/get.dart';
 import 'package:journal/db/dream.dart';
 import 'package:journal/views/details.dart';
@@ -17,6 +18,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 late final Directory platformStorageDir;
 late final ObjectDB database;
 late final SharedPreferences sharedPreferences;
+late final FlutterLocalNotificationsPlugin? notificationsPlugin;
+late final bool? canUseNotifications;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -30,6 +33,13 @@ void main() async {
     : GetPlatform.isIOS ? await getApplicationDocumentsDirectory()
     : await getApplicationSupportDirectory().catchError((_) => Future.value(Directory("")));
   database = ObjectDB(FileSystemStorage(platformStorageDir.absolute.path + "/dreamjournal.db"));
+  try {
+    notificationsPlugin = FlutterLocalNotificationsPlugin();
+    canUseNotifications = (await notificationsPlugin!.initialize(InitializationSettings(
+      android: AndroidInitializationSettings("@drawable/ic_notification")
+    )) ?? false) && (Platform.isAndroid || Platform.isIOS);
+    if (canUseNotifications == false) print("${Platform.operatingSystem} does not support notifications");
+  } catch(e) {print("${Platform.operatingSystem} does not support notifications");}
   runApp(MyApp());
 }
 
