@@ -32,6 +32,7 @@ dependencies:
   date_field: ^2.0.1
   date_time_format: ^2.0.1
   flutter_local_notifications: ^5.0.0+4
+  permission_handler: ^7.1.0
   flutter:
     sdk: flutter
 

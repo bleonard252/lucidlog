@@ -1,6 +1,7 @@
 import 'package:date_time_format/date_time_format.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:journal/main.dart';
 import 'package:journal/notifications.dart';
 import 'package:shared_preferences_settings/shared_preferences_settings.dart' as Settings;
 
@@ -32,7 +33,7 @@ class SettingsRoot extends StatelessWidget {
             EuropeanDateTimeFormats.short: "05/11/2019 19:42"
           },
         ),
-        Settings.SettingsTileGroup(
+        if (canUseNotifications == true) Settings.SettingsTileGroup(
           title: "Notifications",
           children: [
             ListTile(

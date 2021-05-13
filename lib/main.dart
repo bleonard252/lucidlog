@@ -14,6 +14,7 @@ import 'package:objectdb/objectdb.dart';
 import 'package:objectdb/src/objectdb_storage_filesystem.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 late final Directory platformStorageDir;
 late final ObjectDB database;
@@ -32,6 +33,13 @@ void main() async {
     : GetPlatform.isLinux ? await getApplicationDocumentsDirectory()
     : GetPlatform.isIOS ? await getApplicationDocumentsDirectory()
     : await getApplicationSupportDirectory().catchError((_) => Future.value(Directory("")));
+  if (!(await Permission.storage.isGranted)) {
+    var _result = await Permission.storage.request();
+    if (_result != PermissionStatus.granted) return runApp(MaterialApp(home: Scaffold(
+      appBar: AppBar(title: Text("Dream Journal")),
+      body: Text("Storage permission is required. Go into Settings and enable it."),
+    )));
+  }
   database = ObjectDB(FileSystemStorage(platformStorageDir.absolute.path + "/dreamjournal.db"));
   try {
     notificationsPlugin = FlutterLocalNotificationsPlugin();
