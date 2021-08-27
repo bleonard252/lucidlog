@@ -32,8 +32,9 @@ void main() async {
       : _androidStorageOne //TODO: more paths!
     : GetPlatform.isLinux ? await getApplicationDocumentsDirectory()
     : GetPlatform.isIOS ? await getApplicationDocumentsDirectory()
+    : GetPlatform.isWindows ? await getApplicationDocumentsDirectory()
     : await getApplicationSupportDirectory().catchError((_) => Future.value(Directory("")));
-  if (!(await Permission.storage.isGranted)) {
+  if ((Platform.isAndroid || Platform.isIOS) && !(await Permission.storage.isGranted)) {
     var _result = await Permission.storage.request();
     if (_result != PermissionStatus.granted) return runApp(MaterialApp(home: Scaffold(
       appBar: AppBar(title: Text("Dream Journal")),

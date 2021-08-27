@@ -137,7 +137,7 @@ class _DreamEditState extends State<DreamEdit> {
           "wild": isDreamWild,
         };
         if (widget.mode == DreamEditMode.create) database.insert(newData);
-        else await database.update({"id": widget.dream!.id}, newData);
+        else await database.update({"_id": widget.dream!.id}, newData);
         Get.offAllNamed("/");
       },
     );
