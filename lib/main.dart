@@ -135,6 +135,10 @@ final purpleGradient = LinearGradient(
   colors: [Colors.purple, Colors.deepPurple], 
   transform: GradientRotation(1.5*pi)
 );
+final redGradient = LinearGradient(
+  colors: [Colors.red.shade900, Colors.red], 
+  transform: GradientRotation(1.5*pi)
+);
 final goldGradient = LinearGradient(
   colors: [Colors.amber, Colors.orange], 
   transform: GradientRotation(1.5*pi)

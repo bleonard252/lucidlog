@@ -10,6 +10,7 @@ class DreamRecord {
   }) : database = database;
 
   Future<void> loadDocument() async => _document = await database.first({"_id": id});
+
   
   /// The dream's title.
   String get title => _document["title"] ?? "No title provided";
@@ -26,6 +27,11 @@ class DreamRecord {
   /// If it is a lucid dream, whether or not it was wake-induced.
   bool get wild => _document["wild"] ?? false;
   set wild(bool value) => database.update(_document, {"wild": value});
+
+  /// If the dream was forgotten or otherwise not remembered with much integrity.
+  /// Any details provided will still be shown.
+  bool get forgotten => _document["forgotten"] ?? false;
+  set forgotten(bool value) => database.update(_document, {"forgotten": value});
 
   /// The date and time at which this dream was recorded.
   DateTime get timestamp => DateTime.fromMillisecondsSinceEpoch(_document.containsKey("timestamp") ? _document["timestamp"] : 0);

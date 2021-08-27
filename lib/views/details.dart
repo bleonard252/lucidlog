@@ -47,14 +47,16 @@ class DreamDetails extends StatelessWidget {
                   //radius: 32,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.all(Radius.circular(32)),
-                    gradient: dream.lucid ? dream.wild ? goldGradient : purpleGradient : null,
+                    gradient: dream.lucid ? dream.wild ? goldGradient : purpleGradient : dream.forgotten ? redGradient : null,
                     color: Colors.grey
                   ),
                   //backgroundColor: dream.lucid ? Get.theme.primaryColor : Get.theme.disabledColor,
                   //foregroundColor: Get.textTheme.button!.color,
                   child: dream.lucid ? 
                     dream.wild ? Icon(Mdi.weatherLightning) 
-                  : Icon(Icons.cloud) : Icon(Icons.cloud_outlined)
+                  : Icon(Icons.cloud)
+                  : dream.forgotten ? Icon(Icons.cloud_off_outlined) 
+                  : Icon(Icons.cloud_outlined)
                 ),
               ),
               Expanded(
@@ -108,6 +110,11 @@ class DreamDetails extends StatelessWidget {
                     : Icon(Icons.cloud_outlined),
                     title: Text("Lucidity"),
                     subtitle: Text(dream.lucid ? dream.wild ? "WILD Lucid Dream" : "DILD Lucid Dream" : "Non-Lucid Dream", maxLines: 1, overflow: TextOverflow.ellipsis, softWrap: false),
+                  ),
+                  ListTile(
+                    leading: Icon(dream.forgotten ? Icons.cloud_off : Icons.cloud_done_outlined),
+                    title: Text("Recall"),
+                    subtitle: Text(dream.forgotten ? "Insufficient" : "Sufficient", maxLines: 1, overflow: TextOverflow.ellipsis, softWrap: false),
                   ),
                   if (dream.timestamp != DreamRecord.dtzero) ListTile(
                     leading: Icon(Icons.calendar_today),

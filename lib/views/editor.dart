@@ -24,6 +24,7 @@ class _DreamEditState extends State<DreamEdit> {
   late final TextEditingController summaryController;
   bool isDreamLucid = false;
   bool isDreamWild = false;
+  bool isDreamForgotten = false;
   DateTime dateValue = DateTime.now();
 
   @override
@@ -32,6 +33,7 @@ class _DreamEditState extends State<DreamEdit> {
     summaryController = TextEditingController(text: widget.dream?.body ?? "");
     isDreamLucid = widget.dream?.lucid ?? isDreamLucid;
     isDreamWild = widget.dream?.wild ?? isDreamWild;
+    isDreamForgotten = widget.dream?.forgotten ?? isDreamForgotten;
     dateValue = widget.dream?.timestamp ?? dateValue;
     super.initState();
   }
@@ -113,6 +115,12 @@ class _DreamEditState extends State<DreamEdit> {
           title: "",
           bodyWidget: Column(children: [
             SwitchListTile(
+              title: Text("Do you have insufficient recall for this dream?"),
+              subtitle: Text("If you did not have any dreams, or have forgotten them, use this to keep the habit of logging alive."),
+              value: isDreamForgotten,
+              onChanged: (newValue) => setState(() => isDreamForgotten = newValue)
+            ),
+            SwitchListTile(
               title: Text("Was this dream lucid?"),
               subtitle: Text("Were you aware you were dreaming? If you don't know, don't touch this."),
               value: isDreamLucid, 
@@ -135,6 +143,7 @@ class _DreamEditState extends State<DreamEdit> {
           "timestamp": dateValue.millisecondsSinceEpoch,
           "lucid": isDreamLucid,
           "wild": isDreamWild,
+          "forgotten": isDreamForgotten,
         };
         if (widget.mode == DreamEditMode.create) database.insert(newData);
         else await database.update({"_id": widget.dream!.id}, newData);
