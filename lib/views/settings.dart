@@ -33,6 +33,21 @@ class SettingsRoot extends StatelessWidget {
             EuropeanDateTimeFormats.short: "05/11/2019 19:42"
           },
         ),
+        Settings.SettingsTileGroup(
+          title: "Methods",
+          subtitle: "One per line",
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: TextField(
+                controller: TextEditingController(text: sharedPreferences.getStringList("ld-methods")?.join("\n") ?? ""),
+                onChanged: (v) => sharedPreferences.setStringList("ld-methods", v.split("\n")),
+                minLines: null,
+                maxLines: null,
+              ),
+            )
+          ],
+        ),
         if (canUseNotifications == true) Settings.SettingsTileGroup(
           title: "Notifications",
           children: [
@@ -42,7 +57,7 @@ class SettingsRoot extends StatelessWidget {
               onTap: () => RealityCheck.schedule(),
             )
           ],
-        )
+        ),
       ]
     );
   }

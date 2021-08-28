@@ -8,6 +8,7 @@ import 'package:journal/db/dream.dart';
 import 'package:journal/views/details.dart';
 import 'package:journal/views/editor.dart';
 import 'package:journal/views/list.dart';
+import 'package:journal/views/search.dart';
 import 'package:journal/views/settings.dart';
 import 'package:objectdb/objectdb.dart';
 // ignore: implementation_imports
@@ -74,7 +75,11 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSwatch(
           primarySwatch: Colors.purple,
           accentColor: Colors.amber
-        )
+        ),
+        buttonColor: Colors.purple
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        focusColor: Colors.purple,
       ),
       switchTheme: SwitchThemeData(
         thumbColor: MaterialStateProperty.resolveWith((states) {
@@ -108,7 +113,8 @@ class MyApp extends StatelessWidget {
         GetPage(name: "/settings", page: () => SettingsRoot()),
         GetPage(name: "/new", page: () => DreamEdit(mode: DreamEditMode.create)),
         GetPage(name: "/edit", page: () => DreamEdit(mode: DreamEditMode.edit, dream: Get.arguments as DreamRecord)),
-        GetPage(name: "/details", page: () => middleSegment(DreamDetails(Get.arguments as DreamRecord)), transition: Transition.fadeIn, opaque: false)
+        GetPage(name: "/details", page: () => middleSegment(DreamDetails(Get.arguments as DreamRecord)), transition: Transition.fadeIn, opaque: false),
+        GetPage(name: "/search", page: () => SearchScreen())
       ],
     );
   }

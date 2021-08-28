@@ -99,6 +99,7 @@ class _DreamEditState extends State<DreamEdit> {
                 TextField(
                   controller: summaryController, 
                   decoration: InputDecoration(
+                    alignLabelWithHint: true,
                     labelText: "Summary, plot, or body",
                     hintText: "Write more about a dream!"
                   ),
@@ -132,7 +133,22 @@ class _DreamEditState extends State<DreamEdit> {
               onChanged: (newValue) => setState(() => isDreamWild = newValue)
             ),
           ])
-        )
+        ),
+        if (isDreamLucid) PageViewModel(
+          title: "Methods used",
+          bodyWidget: Column(
+            children: [
+              for (var i in sharedPreferences.getStringList("ld-methods") ?? [])
+              CheckboxListTile(
+                value: widget.dream?.methods.contains(i) ?? false, 
+                onChanged: (x) => x ?? false 
+                ? widget.dream?.methods.add(i)
+                : widget.dream?.methods.remove(i),
+                title: Text(i),
+              )
+            ],
+          )
+        ),
       ],
       next: Text("Next"),
       done: Text(widget.mode == DreamEditMode.create ? "Create" : "Update"),

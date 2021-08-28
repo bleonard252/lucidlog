@@ -10,6 +10,7 @@ import 'package:journal/widgets/gradienticon.dart';
 import 'package:mdi/mdi.dart';
 import 'package:objectdb/objectdb.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class DreamListScreen extends StatefulWidget {
   @override
@@ -57,27 +58,80 @@ class _DreamListScreenState extends State<DreamListScreen> {
       ),
       body: isListInitialized ? 
       list.length > 0 ? ListView.builder(
-        itemBuilder: (_, i) => _Entry(dream: list[i]),
+        itemBuilder: (_, i) => DreamEntry(dream: list[i]),
         itemCount: list.length,
       ) : Center(child: EmptyState(
         icon: Icon(Icons.post_add),
         text: Text("This journal is a ghost town!\nWrite down some dreams!"),
       ))
       : Center(child: CircularProgressIndicator(value: null)),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-      floatingActionButton: isListInitialized ? FloatingActionButton.extended(
-        label: Text("New Entry"),
-        icon: Icon(Icons.add),
-        onPressed: () => Get.toNamed("/new"),
-      ) : null
+      bottomNavigationBar: isListInitialized ? BottomAppBar(
+        child: Row(
+          //buttonTextTheme: ButtonTextTheme.primary,
+          children: [
+            Tooltip(
+              message: "Search",
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: IconButton(
+                  icon: Icon(Icons.search),
+                  onPressed: () => Get.toNamed("/search"),
+                  color: Get.theme.accentColor,
+                ),
+              ),
+            ),
+            FutureBuilder(
+              future: canLaunch("https://ldr.1024256.xyz"),
+              builder: (context, snapshot) => snapshot.data == true ? Tooltip(
+                message: "Guides",
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: IconButton(
+                    icon: Icon(Icons.map),
+                    onPressed: () async => await launch("https://ldr.1024256.xyz"),
+                    color: Get.theme.accentColor,
+                  ),
+                ),
+              ) : Container(width: 0, height: 0)
+            ), 
+            Expanded(child: Container(height: 0)),
+            // Padding(
+            //   padding: const EdgeInsets.all(8.0),
+            //   child: IconButton(
+            //     icon: Icon(Icons.nightlight),
+            //     onPressed: () => Get.toNamed("/night/new"),
+            //     color: Get.theme.accentColor,
+            //   ),
+            // ),
+            TextButton(
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Row(children: [Icon(Icons.add), Container(width: 8, height: 0), Text("New Entry")], mainAxisSize: MainAxisSize.min),
+              ),
+              onPressed: () => Get.toNamed("/new"),
+              style: ButtonStyle(foregroundColor: _Gold(), padding: _Padding(8)),
+            )
+          ]
+        ),
+      ) : null,
     );
   }
 }
 
-class _Entry extends StatelessWidget {
+class _Padding extends MaterialStateProperty<EdgeInsetsGeometry> {
+  final double amount;
+  _Padding(this.amount);
+
+  @override
+  resolve(Set<MaterialState> states) {
+    return EdgeInsets.all(amount);
+  }
+}
+
+class DreamEntry extends StatelessWidget {
   final DreamRecord dream;
 
-  _Entry({Key? key, required this.dream}) : super(key: key);
+  DreamEntry({Key? key, required this.dream}) : super(key: key);
   
   @override
   Widget build(BuildContext context) {
@@ -89,5 +143,21 @@ class _Entry extends StatelessWidget {
       : dream.forgotten ? Icon(Icons.cloud_off) : Icon(Icons.cloud_outlined),
       onTap: () => Get.toNamed("/details", arguments: dream),
     ), Divider(height: 1)]);
+  }
+}
+
+class _Gold extends MaterialStateColor {
+  static Color _defaultColor = Colors.amber;
+  static Color _pressedColor = Colors.amber.shade700;
+  static Color _hoverColor = Colors.amber.withAlpha(48);
+
+  const _Gold() : super(0xffab47bc);
+
+  @override
+  Color resolve(Set<MaterialState> states) {
+    if (states.contains(MaterialState.pressed)) {
+      return _pressedColor;
+    }
+    return _defaultColor;
   }
 }

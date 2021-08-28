@@ -38,6 +38,9 @@ class DreamRecord {
   set timestamp(DateTime value) => database.update(_document, {"timestamp": value.millisecondsSinceEpoch});
   static final dtzero = DateTime.fromMillisecondsSinceEpoch(0);
 
+  List<String> get methods => _document["methods"] ?? [];
+  set methods(List<String> value) => database.update(_document, {"methods": value});
+
   // /// The method used.
   // LucidDreamMethod? get method => _document["method"];
   // set method(LucidDreamMethod value) => _database.update(_document, {"method": value});
