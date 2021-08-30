@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'dart:ui';
 
+import 'package:date_time_format/date_time_format.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:journal/db/dream.dart';
@@ -103,6 +104,15 @@ class _DreamListScreenState extends State<DreamListScreen> {
             //     color: Get.theme.accentColor,
             //   ),
             // ),
+            Tooltip(
+              message: "Tag a dream",
+              child: IconButton(
+                icon: Icon(Icons.tag),
+                onPressed: () => Get.toNamed("/tag"),
+                //style: ButtonStyle(foregroundColor: _Gold(), padding: _Padding(8)),
+                color: Get.theme.accentColor
+              ),
+            ),
             TextButton(
               child: Padding(
                 padding: const EdgeInsets.all(8.0),
@@ -110,7 +120,7 @@ class _DreamListScreenState extends State<DreamListScreen> {
               ),
               onPressed: () => Get.toNamed("/new"),
               style: ButtonStyle(foregroundColor: _Gold(), padding: _Padding(8)),
-            )
+            ),
           ]
         ),
       ) : null,
@@ -135,14 +145,35 @@ class DreamEntry extends StatelessWidget {
   
   @override
   Widget build(BuildContext context) {
-    return Column(children: [ListTile(
-      title: Text(dream.forgotten && dream.title == "" ? "No dream logged" : dream.title),
-      subtitle: Text(dream.body, maxLines: 5, overflow: TextOverflow.fade),
-      leading: dream.lucid ? dream.wild ? GradientIcon(Mdi.weatherLightning, 24, goldGradient)
-      : GradientIcon(Icons.cloud, 24, purpleGradient) 
-      : dream.forgotten ? Icon(Icons.cloud_off) : Icon(Icons.cloud_outlined),
-      onTap: () => Get.toNamed("/details", arguments: dream),
-    ), Divider(height: 1)]);
+    var _dateFormat = sharedPreferences.containsKey("datetime-format")
+      ? sharedPreferences.getString("datetime-format") : DateTimeFormats.commonLogFormat;
+    return Column(children: [
+      if (!dream.incomplete) ListTile(
+        title: Text(dream.forgotten && dream.title == ""
+            ? "No dream logged"
+            : dream.title),
+        subtitle: Text(dream.body, maxLines: 5, overflow: TextOverflow.fade),
+        leading: dream.lucid
+            ? dream.wild
+                ? GradientIcon(Mdi.weatherLightning, 24, goldGradient)
+                : GradientIcon(Icons.cloud, 24, purpleGradient)
+            : dream.forgotten
+                ? Icon(Icons.cloud_off)
+                : Icon(Icons.cloud_outlined),
+        onTap: () => Get.toNamed("/details", arguments: dream),
+      ) else ListTile(
+        title: Text("Finish this dream!"),
+        subtitle: Text(
+          "From " + dream.timestamp.format(_dateFormat ?? DateTimeFormats.commonLogFormat) +
+          "\nTags: " + dream.tags.join(", "),
+          maxLines: 5,
+          overflow: TextOverflow.fade
+        ),
+        leading: Icon(Icons.info_outline_rounded),
+        onTap: () => Get.toNamed("/complete", arguments: dream),
+      ),
+      Divider(height: 1)
+    ]);
   }
 }
 

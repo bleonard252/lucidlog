@@ -1,3 +1,4 @@
+import 'package:date_time_format/date_time_format.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:introduction_screen/introduction_screen.dart';
@@ -22,19 +23,23 @@ class DreamEdit extends StatefulWidget {
 class _DreamEditState extends State<DreamEdit> {
   late final TextEditingController titleController;
   late final TextEditingController summaryController;
+  late final TextEditingController tagController;
   bool isDreamLucid = false;
   bool isDreamWild = false;
   bool isDreamForgotten = false;
+  List tags = [];
   DateTime dateValue = DateTime.now();
 
   @override
   void initState() {
     titleController = TextEditingController(text: widget.dream?.title ?? "");
     summaryController = TextEditingController(text: widget.dream?.body ?? "");
+    tagController = TextEditingController(text: "");
     isDreamLucid = widget.dream?.lucid ?? isDreamLucid;
     isDreamWild = widget.dream?.wild ?? isDreamWild;
     isDreamForgotten = widget.dream?.forgotten ?? isDreamForgotten;
     dateValue = widget.dream?.timestamp ?? dateValue;
+    tags = widget.dream?.tags ?? [];
     super.initState();
   }
 
@@ -45,15 +50,59 @@ class _DreamEditState extends State<DreamEdit> {
       dotsDecorator: DotsDecorator(activeColor: Get.theme.primaryColor),
       color: Get.theme.primaryColor,
       pages: [
-        PageViewModel(
-          title: widget.mode == DreamEditMode.create ? "Record your dream!"
-          : widget.mode == DreamEditMode.complete ? "Review this information"
+        if (widget.mode == DreamEditMode.tag || widget.mode == DreamEditMode.complete) PageViewModel(
+          title: widget.mode == DreamEditMode.tag ? "Tag your dream!" : "Review your tags",
+          bodyWidget: SingleChildScrollView(child: Column(
+            children: [
+              if (widget.mode == DreamEditMode.complete) Container(
+                alignment: Alignment.topLeft, 
+                child: IconButton(onPressed: Get.back, icon: Icon(Icons.arrow_back))
+              ),
+              Wrap(
+                alignment: WrapAlignment.start,
+                direction: Axis.horizontal,
+                crossAxisAlignment: WrapCrossAlignment.start,
+                children: [
+                for (var tag in tags) Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Chip(
+                    label: Text(tag),
+                    onDeleted: widget.mode == DreamEditMode.tag ? () {
+                      tags.remove(tag);
+                      setState(() {});
+                    } : null,
+                  )
+                ),
+                if (widget.mode == DreamEditMode.tag) TextField(
+                  controller: tagController,
+                  decoration: InputDecoration(
+                    hintText: "Add a new tag with comma (,)"
+                  ),
+                  onChanged: (v) {
+                    if (v.endsWith(",")) {
+                      tags.add(v.replaceFirst(",", ""));
+                      tagController.clear();
+                      setState(() {});
+                    }
+                  },
+                  onEditingComplete: () {
+                    if (tagController.value.text.isNotEmpty) tags.add(tagController.value.text.replaceFirst(",", ""));
+                    tagController.clear();
+                    setState(() {});
+                  },
+                )
+              ]) 
+            ],
+          )),
+        ),
+        if (widget.mode != DreamEditMode.tag || widget.mode == DreamEditMode.complete) PageViewModel(
+          title: widget.mode == DreamEditMode.create || widget.mode == DreamEditMode.complete ? "Record your dream!"
           : "",
           bodyWidget: SingleChildScrollView(
             child: Column(
               children: [
                 Row(children: [
-                  IconButton(onPressed: Get.back, icon: Icon(Icons.arrow_back)),
+                  if (widget.mode != DreamEditMode.complete) IconButton(onPressed: Get.back, icon: Icon(Icons.arrow_back)),
                   Expanded(child: Container()),
                   if (widget.mode == DreamEditMode.complete || widget.mode == DreamEditMode.edit)
                     TextButton.icon(
@@ -115,7 +164,7 @@ class _DreamEditState extends State<DreamEdit> {
         PageViewModel(
           title: "",
           bodyWidget: Column(children: [
-            SwitchListTile(
+            if (widget.mode != DreamEditMode.tag) SwitchListTile(
               title: Text("Do you have insufficient recall for this dream?"),
               subtitle: Text("If you did not have any dreams, or have forgotten them, use this to keep the habit of logging alive."),
               value: isDreamForgotten,
@@ -134,7 +183,7 @@ class _DreamEditState extends State<DreamEdit> {
             ),
           ])
         ),
-        if (isDreamLucid) PageViewModel(
+        if (isDreamLucid && widget.mode != DreamEditMode.tag) PageViewModel(
           title: "Methods used",
           bodyWidget: Column(
             children: [
@@ -151,7 +200,14 @@ class _DreamEditState extends State<DreamEdit> {
         ),
       ],
       next: Text("Next"),
-      done: Text(widget.mode == DreamEditMode.create ? "Create" : "Update"),
+      done: Text(widget.mode == DreamEditMode.create || widget.mode == DreamEditMode.tag ? "Create" 
+      : widget.mode == DreamEditMode.complete ? "Complete"
+      : "Update"),
+      onChange: (page) {
+        if (tagController.value.text.isNotEmpty) tags.add(tagController.value.text.replaceFirst(",", ""));
+        tagController.clear();
+        setState(() {});
+      },
       onDone: () async {
         var newData = {
           "title": titleController.value.text,
@@ -160,8 +216,10 @@ class _DreamEditState extends State<DreamEdit> {
           "lucid": isDreamLucid,
           "wild": isDreamWild,
           "forgotten": isDreamForgotten,
+          "tags": tags,
+          "incomplete": (widget.mode == DreamEditMode.tag)
         };
-        if (widget.mode == DreamEditMode.create) database.insert(newData);
+        if (widget.mode == DreamEditMode.create || widget.mode == DreamEditMode.tag) database.insert(newData);
         else await database.update({"_id": widget.dream!.id}, newData);
         Get.offAllNamed("/");
       },
@@ -172,6 +230,7 @@ class _DreamEditState extends State<DreamEdit> {
 enum DreamEditMode {
   create,
   edit,
+  tag,
   complete
 }
 

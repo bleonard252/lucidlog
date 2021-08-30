@@ -50,6 +50,11 @@ class DreamRecord {
   }
 
   /// Tags the user has applied to this dream.
-  List<String> get tags => _document["tags"] ?? [];
+  /// Used for "tagging" dreams to recall them later.
+  List<String> get tags => (_document["tags"] ?? []).whereType<String>().toList();
   set tags(List<String> value) => database.update(_document, {"tags": value});
+
+  /// Is the dream incompletely logged?
+  bool get incomplete => _document["incomplete"] ?? false;
+  set incomplete(bool value) => database.update(_document, {"incomplete": value});
 }
