@@ -1,13 +1,16 @@
 import 'dart:io';
 import 'dart:math';
 
+import 'package:date_time_format/date_time_format.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:get/get.dart';
 import 'package:journal/db/dream.dart';
+import 'package:journal/empty_state.dart';
 import 'package:journal/views/details.dart';
 import 'package:journal/views/editor.dart';
 import 'package:journal/views/list.dart';
+import 'package:journal/views/onboarding.dart';
 import 'package:journal/views/search.dart';
 import 'package:journal/views/settings.dart';
 import 'package:objectdb/objectdb.dart';
@@ -27,22 +30,24 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   sharedPreferences = await SharedPreferences.getInstance();
   if (!sharedPreferences.containsKey("amoled-dark")) sharedPreferences.setBool("amoled-dark", false);
-  if (!sharedPreferences.containsKey("datetime-format")) sharedPreferences.setString("datetime-format", "american");
-  final _androidStorageOne = Directory("/storage/emulated/0/Documents");
-  platformStorageDir = GetPlatform.isAndroid ? _androidStorageOne.existsSync() ? _androidStorageOne
-      : _androidStorageOne //TODO: more paths!
+  if (!sharedPreferences.containsKey("datetime-format")) sharedPreferences.setString("datetime-format", DateTimeFormats.commonLogFormat);
+  if (sharedPreferences.getString("datetime-format") == "american") sharedPreferences.setString("datetime-format", DateTimeFormats.commonLogFormat);
+  //final _androidStorageOne = Directory("/storage/emulated/0/Documents");
+  platformStorageDir = GetPlatform.isAndroid ? ((await getExternalStorageDirectories(type: StorageDirectory.documents)) ?? [])[0]
     : GetPlatform.isLinux ? await getApplicationDocumentsDirectory()
     : GetPlatform.isIOS ? await getApplicationDocumentsDirectory()
     : GetPlatform.isWindows ? await getApplicationDocumentsDirectory()
-    : await getApplicationSupportDirectory().catchError((_) => Future.value(Directory("")));
-  if ((Platform.isAndroid || Platform.isIOS) && !(await Permission.storage.isGranted)) {
-    var _result = await Permission.storage.request();
-    if (_result != PermissionStatus.granted) return runApp(MaterialApp(home: Scaffold(
-      appBar: AppBar(title: Text("Dream Journal")),
-      body: Text("Storage permission is required. Go into Settings and enable it."),
-    )));
+    : await getApplicationSupportDirectory();
+  if (sharedPreferences.getBool("onboarding-completed") ?? false) {
+    // platformStorageDir = GetPlatform.isIOS ? await getApplicationDocumentsDirectory()
+    // : Directory(sharedPreferences.getString("storage-path") ?? "");
+    // if ((Platform.isAndroid || Platform.isIOS) && !(await Permission.storage.isGranted)) {
+    //   var _result = await Permission.storage.request();
+    //   if (_result != PermissionStatus.granted) return runApp(MyApp(permissionDenied: true));
+    // }
+    database = ObjectDB(FileSystemStorage(GetPlatform.isIOS ? (await getApplicationDocumentsDirectory()).absolute.path + "/dreamjournal.db"
+    : platformStorageDir.absolute.path + "/dreamjournal.db")); //sharedPreferences.getString("storage-path")!));
   }
-  database = ObjectDB(FileSystemStorage(platformStorageDir.absolute.path + "/dreamjournal.db"));
   try {
     notificationsPlugin = FlutterLocalNotificationsPlugin();
     canUseNotifications = (await notificationsPlugin!.initialize(InitializationSettings(
@@ -54,6 +59,8 @@ void main() async {
 }
 
 class MyApp extends StatelessWidget {
+  final bool permissionDenied;
+  MyApp({this.permissionDenied = false});
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
@@ -109,16 +116,30 @@ class MyApp extends StatelessWidget {
         ? ThemeMode.dark : ThemeMode.light,
       initialRoute: "/",
       getPages: [
-        GetPage(name: "/", page: () => DreamListScreen()),
-        GetPage(name: "/settings", page: () => SettingsRoot()),
-        GetPage(name: "/new", page: () => DreamEdit(mode: DreamEditMode.create)),
-        GetPage(name: "/tag", page: () => DreamEdit(mode: DreamEditMode.tag)),
-        GetPage(name: "/edit", page: () => DreamEdit(mode: DreamEditMode.edit, dream: Get.arguments as DreamRecord)),
-        GetPage(name: "/complete", page: () => DreamEdit(mode: DreamEditMode.complete, dream: Get.arguments as DreamRecord)),
-        GetPage(name: "/details", page: () => middleSegment(DreamDetails(Get.arguments as DreamRecord)), transition: Transition.fadeIn, opaque: false),
-        GetPage(name: "/search", page: () => SearchScreen())
+        if (permissionDenied) GetPage(name: "/", page: () => EmptyState(
+          icon: Icon(Icons.sd_storage_outlined),
+          text: Text("Storage permission was denied."),
+        )) else ...[
+          GetPage(name: "/", middlewares: [OnboardingMiddleware()], page: () => DreamListScreen()),
+          GetPage(name: "/settings", page: () => SettingsRoot()),
+          GetPage(name: "/new", middlewares: [OnboardingMiddleware()], page: () => DreamEdit(mode: DreamEditMode.create)),
+          GetPage(name: "/tag", middlewares: [OnboardingMiddleware()], page: () => DreamEdit(mode: DreamEditMode.tag)),
+          GetPage(name: "/edit", middlewares: [OnboardingMiddleware()], page: () => DreamEdit(mode: DreamEditMode.edit, dream: Get.arguments as DreamRecord)),
+          GetPage(name: "/complete", middlewares: [OnboardingMiddleware()], page: () => DreamEdit(mode: DreamEditMode.complete, dream: Get.arguments as DreamRecord)),
+          GetPage(name: "/details", middlewares: [OnboardingMiddleware()], page: () => middleSegment(DreamDetails(Get.arguments as DreamRecord)), transition: Transition.fadeIn, opaque: false),
+          GetPage(name: "/search", middlewares: [OnboardingMiddleware()], page: () => SearchScreen()),
+          GetPage(name: "/onboarding", page: () => OnboardingScreen())
+        ]
       ],
     );
+  }
+}
+
+class OnboardingMiddleware extends GetMiddleware {
+  @override
+  RouteSettings? redirect(String? route) {
+    if (!(sharedPreferences.getBool("onboarding-completed") ?? false)) return RouteSettings(name: '/onboarding');
+    else return null;
   }
 }
 

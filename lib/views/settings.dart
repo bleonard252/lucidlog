@@ -1,9 +1,15 @@
+import 'dart:io';
+import 'dart:typed_data';
+
 import 'package:date_time_format/date_time_format.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:file_picker_cross/file_picker_cross.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:journal/main.dart';
 import 'package:journal/notifications.dart';
 import 'package:shared_preferences_settings/shared_preferences_settings.dart' as Settings;
+import 'package:url_launcher/url_launcher.dart';
 
 class SettingsRoot extends StatelessWidget {
   @override
@@ -25,7 +31,7 @@ class SettingsRoot extends StatelessWidget {
           settingKey: "datetime-format",
           title: "Date format",
           icon: Icon(Icons.date_range),
-          defaultKey: "american",
+          defaultKey: AmericanDateTimeFormats.abbrDayOfWeekAbbr,
           values: {
             AmericanDateTimeFormats.abbrDayOfWeekAbbr: "Tue Nov 5, 2019 7:42 pm",
             EuropeanDateTimeFormats.abbrDayOfWeekAbbr: "Tue 5 Nov 2019 19:42",
@@ -47,6 +53,51 @@ class SettingsRoot extends StatelessWidget {
               ),
             )
           ],
+        ),
+        Settings.SettingsTileGroup(
+          title: "Storage",
+          children: [
+            ListTile(
+              title: Text("Storage path"),
+              subtitle: Text(platformStorageDir.absolute.path),
+              leading: Icon(Icons.sd_storage)
+            ),
+            if (GetPlatform.isAndroid || GetPlatform.isDesktop) ListTile(
+              leading: Icon(Icons.save),
+              title: Text("Export"),
+              subtitle: Text("Save a copy of your dream journal's database."),
+              onTap: () async {
+                FilePickerCross(File(platformStorageDir.absolute.path + "/dreamjournal.db").readAsBytesSync()).exportToStorage(fileName: "dreamjournal.db");
+              },
+            ),
+            if (GetPlatform.isAndroid || GetPlatform.isDesktop) ListTile(
+              leading: Icon(Icons.folder),
+              title: Text("Import"),
+              subtitle: Text("Load a backup of your dream journal's database."),
+              onTap: () async {
+                //FilePickerCross(File.fromUri(Uri.parse(sharedPreferences.getString("storage-path") ?? "")).readAsBytesSync()).exportToStorage(fileName: "dreamjournal.db");
+                final file = await FilePickerCross.importFromStorage(type: FileTypeCross.any);
+                final confirmation = await Get.dialog(AlertDialog(
+                  title: Text("Are you sure you want to import this?"),
+                  content: Text("Importing this WILL clear your entire journal! Make sure you've performed a backup."),
+                  actions: [
+                    TextButton(onPressed: () => Get.back(result: false), child: Text("STAY SAFE")),
+                    TextButton(onPressed: () => Get.back(result: true), child: Text("YES", style: TextStyle(color: Colors.red))),
+                  ],
+                ));
+                if (confirmation == false) return;
+                await database.close();
+                await File(platformStorageDir.absolute.path + "/dreamjournal.db").writeAsBytes(file.toUint8List());
+                await Get.dialog(AlertDialog(
+                  title: Text("Immediate restart required"),
+                  content: Text("The app will now restart to finish applying this change."),
+                  actions: [
+                    TextButton(onPressed: () => exit(0), child: Text("OK")),
+                  ],
+                ));
+              },
+            )
+          ]
         ),
         if (canUseNotifications == true) Settings.SettingsTileGroup(
           title: "Notifications",
