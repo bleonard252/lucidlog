@@ -109,7 +109,8 @@ class _DreamEditState extends State<DreamEdit> {
                       onPressed: () async {
                         var _do = await Get.dialog(AlertDialog(
                           title: Text("Are you sure?"),
-                          content: Text("Are you sure you want to delete this journal entry?"),
+                          content: Text("Are you sure you want to delete this journal entry? This isn't an action that should be taken lightly.\n"
+                          + "Further, once deleted, you do not get this entry back."),
                           actions: [
                             TextButton(onPressed: () => Get.back(result: true), child: Text("YES")),
                             TextButton(onPressed: () => Get.back(result: false), child: Text("NO")),

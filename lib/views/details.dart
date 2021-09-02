@@ -92,6 +92,38 @@ class DreamDetails extends StatelessWidget {
                 ])
               )
             ),
+            if (dream.tags.isNotEmpty) Container(
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              width: 999999999,
+              child: Material(
+                elevation: 2,
+                type: MaterialType.card,
+                color: Get.theme.cardColor,
+                borderRadius: BorderRadius.all(Radius.circular(0)),
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children:[
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Text("Tags", 
+                      style: Get.textTheme.subtitle1?.copyWith(fontWeight: FontWeight.w700)),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Wrap(
+                      alignment: WrapAlignment.start,
+                      direction: Axis.horizontal,
+                      crossAxisAlignment: WrapCrossAlignment.start,
+                      children: [
+                      for (var tag in dream.tags) Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Chip(
+                          label: Text(tag)
+                        )
+                      ),
+                    ])
+                  )
+                ])
+              )
+            ),
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 4),
               child: Material(
