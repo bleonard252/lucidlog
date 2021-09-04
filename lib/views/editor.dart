@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:introduction_screen/introduction_screen.dart';
 import 'package:journal/db/dream.dart';
 import 'package:journal/main.dart';
+import 'package:journal/views/optional_features.dart';
 import 'package:objectdb/objectdb.dart';
 import 'package:date_field/date_field.dart';
 
@@ -25,9 +26,10 @@ class _DreamEditState extends State<DreamEdit> {
   late final TextEditingController summaryController;
   late final TextEditingController tagController;
   bool isDreamLucid = false;
-  bool isDreamWild = false;
+  //bool isDreamWild = false;
   bool isDreamForgotten = false;
-  List tags = [];
+  List<String> tags = [];
+  List<String> methods = [];
   DateTime dateValue = DateTime.now();
 
   @override
@@ -36,10 +38,11 @@ class _DreamEditState extends State<DreamEdit> {
     summaryController = TextEditingController(text: widget.dream?.body ?? "");
     tagController = TextEditingController(text: "");
     isDreamLucid = widget.dream?.lucid ?? isDreamLucid;
-    isDreamWild = widget.dream?.wild ?? isDreamWild;
+    //isDreamWild = widget.dream?.wild ?? isDreamWild;
     isDreamForgotten = widget.dream?.forgotten ?? isDreamForgotten;
     dateValue = widget.dream?.timestamp ?? dateValue;
     tags = widget.dream?.tags ?? [];
+    methods = widget.dream?.methods ?? [];
     super.initState();
   }
 
@@ -76,11 +79,11 @@ class _DreamEditState extends State<DreamEdit> {
                 if (widget.mode == DreamEditMode.tag) TextField(
                   controller: tagController,
                   decoration: InputDecoration(
-                    hintText: "Add a new tag with comma (,)"
+                    hintText: "Add a new tag with comma (,) or Enter"
                   ),
                   onChanged: (v) {
                     if (v.endsWith(",")) {
-                      tags.add(v.replaceFirst(",", ""));
+                      if (v.replaceFirst(",", "") != "") tags.add(v.replaceFirst(",", ""));
                       tagController.clear();
                       setState(() {});
                     }
@@ -177,24 +180,38 @@ class _DreamEditState extends State<DreamEdit> {
               value: isDreamLucid, 
               onChanged: (newValue) => setState(() => isDreamLucid = newValue)
             ),
-            if (isDreamLucid) SwitchListTile(
+            if (isDreamLucid && OptionalFeatures.wildDistinction && !OptionalFeatures.rememberMethods) SwitchListTile(
               title: Text("Was this lucid dream wake-induced?"),
-              value: isDreamWild,
-              onChanged: (newValue) => setState(() => isDreamWild = newValue)
+              value: methods.contains("WILD"),
+              onChanged: (newValue) => setState(() => newValue ? methods.add("WILD") : methods.remove("WILD"))
             ),
           ])
         ),
-        if (isDreamLucid && widget.mode != DreamEditMode.tag) PageViewModel(
+        if (isDreamLucid && widget.mode != DreamEditMode.tag && OptionalFeatures.rememberMethods) PageViewModel(
           title: "Methods used",
           bodyWidget: Column(
             children: [
-              for (var i in sharedPreferences.getStringList("ld-methods") ?? [])
-              CheckboxListTile(
-                value: widget.dream?.methods.contains(i) ?? false, 
-                onChanged: (x) => x ?? false 
-                ? widget.dream?.methods.add(i)
-                : widget.dream?.methods.remove(i),
-                title: Text(i),
+              if (OptionalFeatures.wildDistinction) CheckboxListTile(
+                activeColor: Colors.amber,
+                checkColor: Get.theme.canvasColor,
+                value: methods.contains("WILD"), 
+                onChanged: (x) => setState(() => x ?? false 
+                ? methods.add("WILD")
+                : methods.remove("WILD")),
+                title: Text("WILD", style: TextStyle(color: Colors.amber)),
+              ),
+              for (var i in [...sharedPreferences.getStringList("ld-methods") ?? [], ...methods].toSet())
+              if ((OptionalFeatures.wildDistinction && i != "WILD") || !OptionalFeatures.wildDistinction) CheckboxListTile(
+                activeColor: Get.theme.primaryColor,
+                checkColor: Get.theme.canvasColor,
+                value: methods.contains(i), 
+                onChanged: (x) => setState(() => x ?? false 
+                ? methods.add(i)
+                : methods.remove(i)),
+                title: Text(i, style: TextStyle(
+                  // Gray out techniques that have been removed from the list
+                  color: Colors.white.withAlpha(sharedPreferences.getStringList("ld-methods")?.contains(i)??false ? 255 : 127))
+                ),
               )
             ],
           )
@@ -215,9 +232,10 @@ class _DreamEditState extends State<DreamEdit> {
           "body": summaryController.value.text,
           "timestamp": dateValue.millisecondsSinceEpoch,
           "lucid": isDreamLucid,
-          "wild": isDreamWild,
+          //"wild": isDreamWild,
           "forgotten": isDreamForgotten,
           "tags": tags,
+          "methods": isDreamLucid ? methods : [],
           "incomplete": (widget.mode == DreamEditMode.tag)
         };
         if (widget.mode == DreamEditMode.create || widget.mode == DreamEditMode.tag) database.insert(newData);

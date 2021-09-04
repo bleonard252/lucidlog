@@ -153,13 +153,15 @@ class DreamEntry extends StatelessWidget {
             ? "No dream logged"
             : dream.title),
         subtitle: Text(dream.body, maxLines: 5, overflow: TextOverflow.fade),
-        leading: dream.lucid
-            ? dream.wild
-                ? GradientIcon(Mdi.weatherLightning, 24, goldGradient)
-                : GradientIcon(Icons.cloud, 24, purpleGradient)
-            : dream.forgotten
-                ? Icon(Icons.cloud_off)
-                : Icon(Icons.cloud_outlined),
+        // leading: dream.lucid
+        //     ? dream.wild
+        //         ? GradientIcon(Mdi.weatherLightning, 24, goldGradient)
+        //         : GradientIcon(Icons.cloud, 24, purpleGradient)
+        //     : dream.forgotten
+        //         ? Icon(Icons.cloud_off)
+        //         : Icon(Icons.cloud_outlined),
+        leading: dream.type.gradient == null ? Icon(dream.type.icon) 
+        : GradientIcon(dream.type.icon, 24, dream.type.gradient!),
         onTap: () => Get.toNamed("/details", arguments: dream),
       ) else ListTile(
         title: Text("Finish this dream!"),

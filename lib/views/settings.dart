@@ -8,6 +8,9 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:journal/main.dart';
 import 'package:journal/notifications.dart';
+import 'package:journal/views/methods.dart';
+import 'package:journal/views/optional_features.dart';
+import 'package:mdi/mdi.dart';
 import 'package:shared_preferences_settings/shared_preferences_settings.dart' as Settings;
 import 'package:url_launcher/url_launcher.dart';
 
@@ -27,6 +30,13 @@ class SettingsRoot extends StatelessWidget {
         //   subtitle: "This will NOT move the file! ALL YOUR DATA WILL BE LOST!",
         //   icon: Icon(Icons.folder),
         // )
+        Settings.SimpleSettingsTile(
+          title: "Optional features",
+          icon: Icon(Mdi.featureSearch),
+          subtitle: "WILD Distinction, plotlines, and other features that might "
+          "be too confusing for some users or get in the way",
+          screen: OptionalFeaturesSettingsScreen(),
+        ),
         Settings.RadioSettingsTile(
           settingKey: "datetime-format",
           title: "Date format",
@@ -39,20 +49,22 @@ class SettingsRoot extends StatelessWidget {
             EuropeanDateTimeFormats.short: "05/11/2019 19:42"
           },
         ),
-        Settings.SettingsTileGroup(
-          title: "Methods",
-          subtitle: "One per line",
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: TextField(
-                controller: TextEditingController(text: sharedPreferences.getStringList("ld-methods")?.join("\n") ?? ""),
-                onChanged: (v) => sharedPreferences.setStringList("ld-methods", v.split("\n")),
-                minLines: null,
-                maxLines: null,
-              ),
-            )
-          ],
+        Settings.SimpleSettingsTile(
+          title: "Techniques",
+          subtitle: "Used to remember what techniques you used to become lucid.",
+          icon: Icon(Mdi.viewList),
+          // children: [
+          //   Padding(
+          //     padding: const EdgeInsets.all(16.0),
+          //     child: TextField(
+          //       controller: TextEditingController(text: sharedPreferences.getStringList("ld-methods")?.join("\n") ?? ""),
+          //       onChanged: (v) => sharedPreferences.setStringList("ld-methods", v.split("\n")),
+          //       minLines: null,
+          //       maxLines: null,
+          //     ),
+          //   )
+          // ],
+          screen: MethodsSettingsScreen(),
         ),
         Settings.SettingsTileGroup(
           title: "Storage",

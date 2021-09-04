@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:journal/db/dream.dart';
 import 'package:journal/main.dart';
+import 'package:journal/views/optional_features.dart';
 import 'package:journal/widgets/gradienticon.dart';
 import 'package:mdi/mdi.dart';
 import 'package:date_time_format/date_time_format.dart';
@@ -47,16 +48,12 @@ class DreamDetails extends StatelessWidget {
                   //radius: 32,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.all(Radius.circular(32)),
-                    gradient: dream.lucid ? dream.wild ? goldGradient : purpleGradient : dream.forgotten ? redGradient : null,
+                    gradient: dream.type.gradient, //dream.lucid ? dream.wild ? goldGradient : purpleGradient : dream.forgotten ? redGradient : null,
                     color: Colors.grey
                   ),
                   //backgroundColor: dream.lucid ? Get.theme.primaryColor : Get.theme.disabledColor,
                   //foregroundColor: Get.textTheme.button!.color,
-                  child: dream.lucid ? 
-                    dream.wild ? Icon(Mdi.weatherLightning) 
-                  : Icon(Icons.cloud)
-                  : dream.forgotten ? Icon(Icons.cloud_off_outlined) 
-                  : Icon(Icons.cloud_outlined)
+                  child: Icon(dream.type.icon)
                 ),
               ),
               Expanded(
@@ -87,7 +84,7 @@ class DreamDetails extends StatelessWidget {
                   ),
                   Padding(
                     padding: const EdgeInsets.all(8.0),
-                    child: Text(dream.body)//Text(room.topic, style: Get.textTheme.bodyText2),
+                    child: SelectableText(dream.body)//Text(room.topic, style: Get.textTheme.bodyText2),
                   )
                 ])
               )
@@ -124,6 +121,64 @@ class DreamDetails extends StatelessWidget {
                 ])
               )
             ),
+            if (dream.methods.isNotEmpty) Container(
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              width: 999999999,
+              child: Material(
+                elevation: 2,
+                type: MaterialType.card,
+                color: Get.theme.cardColor,
+                borderRadius: BorderRadius.all(Radius.circular(0)),
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children:[
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Text("Techniques used",
+                      style: Get.textTheme.subtitle1?.copyWith(fontWeight: FontWeight.w700)),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Wrap(
+                      alignment: WrapAlignment.start,
+                      direction: Axis.horizontal,
+                      crossAxisAlignment: WrapCrossAlignment.start,
+                      children: [
+                        if (dream.methods.contains("WILD") && OptionalFeatures.wildDistinction) Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Chip(
+                            backgroundColor: Colors.amber,
+                            labelStyle: TextStyle(color: Colors.black),
+                            label: Text("WILD")
+                          )
+                        ),
+                        if (dream.methods.contains("SSILD") && OptionalFeatures.wildDistinction) Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Chip(
+                            backgroundColor: Colors.amber,
+                            labelStyle: TextStyle(color: Colors.black),
+                            label: Text("SSILD")
+                          )
+                        ),
+                        if (dream.methods.contains("DEILD") && OptionalFeatures.wildDistinction) Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Chip(
+                            backgroundColor: Colors.amber,
+                            labelStyle: TextStyle(color: Colors.black),
+                            label: Text("DEILD")
+                          )
+                        ),
+                        for (var tag in dream.methods) if (!((tag == "WILD" || tag == "SSILD" || tag == "DEILD") && OptionalFeatures.wildDistinction)) Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Chip(
+                            backgroundColor: sharedPreferences.getStringList("ld-methods")?.contains(tag)??false ? Colors.grey.shade600 : Colors.redAccent.shade700,
+                            label: Text(tag)
+                          )
+                        ),
+                      ]
+                    )
+                  )
+                ])
+              )
+            ),
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 4),
               child: Material(
@@ -137,11 +192,12 @@ class DreamDetails extends StatelessWidget {
                   //   child: Text("User Information", style: Get.textTheme.subtitle1?.copyWith(fontWeight: FontWeight.w700)),
                   // ),
                   ListTile(
-                    leading: dream.lucid ? dream.wild ? GradientIcon(Mdi.weatherLightning, 24, goldGradient)
-                    : GradientIcon(Icons.cloud, 24, purpleGradient) 
-                    : Icon(Icons.cloud_outlined),
-                    title: Text("Lucidity"),
-                    subtitle: Text(dream.lucid ? dream.wild ? "WILD Lucid Dream" : "DILD Lucid Dream" : "Non-Lucid Dream", maxLines: 1, overflow: TextOverflow.ellipsis, softWrap: false),
+                    // leading: dream.lucid ? dream.wild ? GradientIcon(Mdi.weatherLightning, 24, goldGradient)
+                    // : GradientIcon(Icons.cloud, 24, purpleGradient) 
+                    // : Icon(Icons.cloud_outlined),
+                    leading: Icon(dream.type.icon),
+                    title: Text("Type"),
+                    subtitle: Text(dream.type.name) //Text(dream.lucid ? dream.wild ? "WILD Lucid Dream" : "DILD Lucid Dream" : "Non-Lucid Dream", maxLines: 1, overflow: TextOverflow.ellipsis, softWrap: false),
                   ),
                   ListTile(
                     leading: Icon(dream.forgotten ? Icons.cloud_off : Icons.cloud_done_outlined),

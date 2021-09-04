@@ -1,3 +1,10 @@
+import 'dart:ui';
+
+import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
+import 'package:journal/main.dart';
+import 'package:journal/views/optional_features.dart';
+import 'package:mdi/mdi.dart';
 import 'package:objectdb/objectdb.dart';
 
 class DreamRecord {
@@ -9,8 +16,16 @@ class DreamRecord {
     required ObjectDB database
   }) : database = database;
 
-  Future<void> loadDocument() async => _document = await database.first({"_id": id});
-
+  Future<void> loadDocument() async {
+    _document = await database.first({"_id": id});
+    /// WILD migration from flag to method
+    if (_document["wild"] == true && !methods.contains("WILD")) {
+      await database.update(_document, {
+        Op.set: {"methods": [...(_document["methods"] ?? []), "WILD"]}
+      });
+      _document = await database.first({"_id": id});
+    }
+  }
   
   /// The dream's title.
   String get title => _document["title"] ?? "No title provided";
@@ -24,9 +39,17 @@ class DreamRecord {
   bool get lucid => _document["lucid"] ?? false;
   set lucid(bool value) => database.update(_document, {"lucid": value});
 
+  _DreamType get type => _DreamType.withRecall(
+    !this.forgotten,
+    this.lucid ? ((this.methods.contains("WILD") || this.methods.contains("SSILD") || methods.contains("DEILD")) && OptionalFeatures.wildDistinction) ? _DreamType.wildLucid
+      : _DreamType.dildLucid
+    : _DreamType.nonLucid
+  );
+
   /// If it is a lucid dream, whether or not it was wake-induced.
-  bool get wild => _document["wild"] ?? false;
-  set wild(bool value) => database.update(_document, {"wild": value});
+  // @Deprecated("Use type instead.")
+  // bool get wild => _document["wild"] ?? false;
+  // set wild(bool value) => database.update(_document, {"wild": value});
 
   /// If the dream was forgotten or otherwise not remembered with much integrity.
   /// Any details provided will still be shown.
@@ -38,7 +61,7 @@ class DreamRecord {
   set timestamp(DateTime value) => database.update(_document, {"timestamp": value.millisecondsSinceEpoch});
   static final dtzero = DateTime.fromMillisecondsSinceEpoch(0);
 
-  List<String> get methods => _document["methods"] ?? [];
+  List<String> get methods => List.castFrom<dynamic, String>(_document["methods"] ?? []);
   set methods(List<String> value) => database.update(_document, {"methods": value});
 
   // /// The method used.
@@ -55,6 +78,58 @@ class DreamRecord {
   set tags(List<String> value) => database.update(_document, {"tags": value});
 
   /// Is the dream incompletely logged?
+  /// This is set to `true` after tagging
+  /// and `false` after journaling a tagged
+  /// dream journal entry.
+  /// This changes how the entry is shown on
+  /// the Home and Search screens.
   bool get incomplete => _document["incomplete"] ?? false;
   set incomplete(bool value) => database.update(_document, {"incomplete": value});
+}
+
+class _DreamType {
+  /// A gradient used in place of the grey
+  /// background on the Details page and the
+  /// white color of the icon on the List and Search pages.
+  final Gradient? gradient;
+  /// The name of the dream type, used in the Type area.
+  /// If false, it falls back to another entry.
+  final String name;
+  /// The icon associated with the dream type.
+  final IconData icon;
+
+  const _DreamType._({
+    this.gradient, 
+    required this.name,
+    required this.icon
+  });
+
+  /// Any non-lucid dream.
+  static const nonLucid = _DreamType._(
+    name: "Non-Lucid Dream",
+    icon: Icons.cloud_outlined
+  );
+  /// Used in dreams of insufficient recall.
+  /// A unique feature of this mode's display
+  /// is that it does not appear in the
+  /// Dream Type box, instead reverting to 
+  /// its lucidity.
+  _DreamType.withRecall(bool sufficient, _DreamType fallback) :
+    this.name = fallback.name,
+    this.icon = sufficient ? fallback.icon : Icons.cloud_off,
+    this.gradient = fallback.gradient;
+  
+  /// A lucid dream. If WILD distinction is off,
+  /// this shows for WILDs.
+  static final dildLucid = _DreamType._(
+    name: (OptionalFeatures.wildDistinction) ? "Dream-Induced Lucid Dream" : "Lucid Dream", 
+    icon: Icons.cloud,
+    gradient: purpleGradient
+  );
+  /// A WILD, if WILD distinction is on.
+  static final wildLucid = _DreamType._(
+    name: "Wake-Induced Lucid Dream",
+    icon: Mdi.weatherLightning,
+    gradient: goldGradient
+  );
 }
