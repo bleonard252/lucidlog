@@ -36,6 +36,7 @@ dependencies:
   url_launcher: ^6.0.9
   file_picker: ^3.0.2+2
   file_picker_cross: ^4.4.2
+  share_plus: ^2.1.4
   flutter:
     sdk: flutter
 

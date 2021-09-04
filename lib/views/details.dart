@@ -1,3 +1,6 @@
+import 'dart:typed_data';
+
+import 'package:file_picker_cross/file_picker_cross.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:journal/db/dream.dart';
@@ -6,6 +9,7 @@ import 'package:journal/views/optional_features.dart';
 import 'package:journal/widgets/gradienticon.dart';
 import 'package:mdi/mdi.dart';
 import 'package:date_time_format/date_time_format.dart';
+import 'package:share_plus/share_plus.dart';
 
 class DreamDetails extends StatelessWidget {
   final DreamRecord dream;
@@ -32,6 +36,11 @@ class DreamDetails extends StatelessWidget {
                 onPressed: () => Get.back(),
               ),
               actions: [
+                IconButton(
+                  icon: Icon(Icons.share),
+                  onPressed: () => Share.share("**${dream.title}** *from ${dream.timestamp.format(_dateFormat ?? DateTimeFormats.commonLogFormat)}*\n"
+                  "${dream.body}", subject: dream.title)
+                ),
                 IconButton(
                   icon: Icon(Icons.edit),
                   onPressed: () => Get.offAndToNamed("/edit", arguments: dream)
