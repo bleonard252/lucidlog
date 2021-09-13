@@ -4,7 +4,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:journal/db/dream.dart';
-import 'package:journal/empty_state.dart';
+import 'package:journal/widgets/empty_state.dart';
 import 'package:journal/main.dart';
 import 'package:journal/widgets/gradienticon.dart';
 import 'package:mdi/mdi.dart';

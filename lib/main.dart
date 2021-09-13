@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:get/get.dart';
 import 'package:journal/db/dream.dart';
-import 'package:journal/empty_state.dart';
+import 'package:journal/widgets/empty_state.dart';
 import 'package:journal/views/details.dart';
 import 'package:journal/views/editor.dart';
 import 'package:journal/views/list.dart';
