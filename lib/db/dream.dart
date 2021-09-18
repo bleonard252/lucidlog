@@ -42,7 +42,7 @@ class DreamRecord {
   /// Name, colors, and icons related to the dream category.
   _DreamType get type => _DreamType.withRecall(
     !this.forgotten,
-    this.lucid ? ((this.methods.contains("WILD") || this.methods.contains("SSILD") || methods.contains("DEILD")) && OptionalFeatures.wildDistinction) ? _DreamType.wildLucid
+    this.lucid ? (this.wild && OptionalFeatures.wildDistinction) ? _DreamType.wildLucid
       : _DreamType.dildLucid
     : _DreamType.nonLucid
   );
@@ -56,6 +56,7 @@ class DreamRecord {
   /// If it is a lucid dream, whether or not it was wake-induced.
   // @Deprecated("Use type instead.")
   // bool get wild => _document["wild"] ?? false;
+  bool get wild => this.methods.contains("WILD") || this.methods.contains("SSILD") || methods.contains("DEILD");
   // set wild(bool value) => database.update(_document, {"wild": value});
 
   /// If the dream was forgotten or otherwise not remembered with much integrity.

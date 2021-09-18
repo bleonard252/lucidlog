@@ -24,12 +24,12 @@ class OptionalFeaturesSettingsScreen extends StatelessWidget {
           subtitle: "Adds a list in the editor for these set techniques.",
           //screen: MethodsSettingsScreen()
         ),
-        // Settings.SwitchSettingsTile(
-        //   title: "Counters",
-        //   settingKey: "opt-counters",
-        //   defaultValue: false,
-        //   subtitle: "Add counters to the dream detail screen. This will count your dreams, lucids, and in coordination with WILD Distinction, WILDs.",
-        // ),
+        Settings.SwitchSettingsTile(
+          title: "Counters",
+          settingKey: "opt-counters",
+          defaultValue: false,
+          subtitle: "Add counters to the dream detail screen. This will count your dreams, lucids, and in coordination with WILD Distinction, WILDs.",
+        ),
         Settings.SwitchSettingsTile(
           title: "Group by Night",
           settingKey: "opt-nightly",

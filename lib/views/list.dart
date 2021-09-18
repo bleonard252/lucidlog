@@ -14,6 +14,8 @@ import 'package:objectdb/objectdb.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+late List<DreamRecord> dreamList;
+
 class DreamListScreen extends StatefulWidget {
   @override
   _DreamListScreenState createState() => _DreamListScreenState();
@@ -35,6 +37,7 @@ class _DreamListScreenState extends State<DreamListScreen> {
       await Future.wait(_futures);
       _list.sort((a, b) => a.timestamp.compareTo(b.timestamp));
       list = _list.reversed.toList();
+      dreamList = list;
       isListInitialized = true;
       setState(() {});
     });

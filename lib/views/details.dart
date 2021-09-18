@@ -5,16 +5,37 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:journal/db/dream.dart';
 import 'package:journal/main.dart';
+import 'package:journal/views/list.dart';
 import 'package:journal/views/optional_features.dart';
 import 'package:journal/widgets/gradienticon.dart';
 import 'package:mdi/mdi.dart';
 import 'package:date_time_format/date_time_format.dart';
 import 'package:share_plus/share_plus.dart';
 
+extension DreamList on List<DreamRecord> {
+  List<DreamRecord> get lucids => this.where((element) => element.lucid).toList();
+  List<DreamRecord> get wilds => this.where((element) => element.wild).toList();
+  List<DreamRecord> sameNight({required DreamRecord as}) => this.where((element) => element.night == as.night).toList();
+}
+
 class DreamDetails extends StatelessWidget {
   final DreamRecord dream;
+  final List<DreamRecord>? list = dreamList.reversed.toList();
 
   DreamDetails(this.dream, {Key? key}) : super(key: key);
+
+  List<String> calculateCounters() {
+    assert(list != null, "Counters must be enabled and list must be given");
+    List<String> output = [];
+    output.add("Dream "+(list!.lastIndexOf(dream)+1).toString());
+    if (dream.lucid) output.add("LD "+(list!.lucids.lastIndexOf(dream)+1).toString());
+    if (OptionalFeatures.wildDistinction && dream.wild)
+      output.add("WILD "+(list!.wilds.indexOf(dream)+1).toString());
+    if (list!.sameNight(as: dream).length > 1) 
+      output.add("Dream ${list!.sameNight(as: dream).indexOf(dream)} of the night");
+    // TODO: streaks!
+    return output;
+  }
   
   @override
   Widget build(BuildContext context) {
@@ -57,7 +78,7 @@ class DreamDetails extends StatelessWidget {
                   //radius: 32,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.all(Radius.circular(32)),
-                    gradient: dream.type.gradient, //dream.lucid ? dream.wild ? goldGradient : purpleGradient : dream.forgotten ? redGradient : null,
+                    gradient: dream.forgotten ? redGradient : dream.type.gradient, //dream.lucid ? dream.wild ? goldGradient : purpleGradient : dream.forgotten ? redGradient : null,
                     color: Colors.grey
                   ),
                   //backgroundColor: dream.lucid ? Get.theme.primaryColor : Get.theme.disabledColor,
@@ -219,6 +240,11 @@ class DreamDetails extends StatelessWidget {
                     subtitle: Text(dream.timestamp.format(_dateFormat ?? DateTimeFormats.commonLogFormat), 
                       maxLines: 1, overflow: TextOverflow.ellipsis, softWrap: false),
                   ),
+                  if (OptionalFeatures.counters) ListTile(
+                    leading: Icon(Mdi.clockOutline),
+                    title: Text("Counters"),
+                    subtitle: Text(calculateCounters().join(", ")),
+                  )
                 ]))
               ),
             ),
