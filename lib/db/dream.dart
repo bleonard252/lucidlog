@@ -39,12 +39,19 @@ class DreamRecord {
   bool get lucid => _document["lucid"] ?? false;
   set lucid(bool value) => database.update(_document, {"lucid": value});
 
+  /// Name, colors, and icons related to the dream category.
   _DreamType get type => _DreamType.withRecall(
     !this.forgotten,
     this.lucid ? ((this.methods.contains("WILD") || this.methods.contains("SSILD") || methods.contains("DEILD")) && OptionalFeatures.wildDistinction) ? _DreamType.wildLucid
       : _DreamType.dildLucid
     : _DreamType.nonLucid
   );
+
+  /// The night during which the dream occurred.
+  /// A "night," for the intent of recording dreams here,
+  /// starts at noon and proceeds until noon the next day.
+  /// This is used to group dreams in the main list.
+  DateTime get night => DateTime(timestamp.year, timestamp.month, timestamp.hour > 12 ? timestamp.day : timestamp.day - 1);
 
   /// If it is a lucid dream, whether or not it was wake-induced.
   // @Deprecated("Use type instead.")

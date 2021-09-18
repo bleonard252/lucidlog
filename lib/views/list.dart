@@ -5,6 +5,7 @@ import 'package:date_time_format/date_time_format.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:journal/db/dream.dart';
+import 'package:journal/views/optional_features.dart';
 import 'package:journal/widgets/empty_state.dart';
 import 'package:journal/main.dart';
 import 'package:journal/widgets/gradienticon.dart';
@@ -59,7 +60,7 @@ class _DreamListScreenState extends State<DreamListScreen> {
       ),
       body: isListInitialized ? 
       list.length > 0 ? ListView.builder(
-        itemBuilder: (_, i) => DreamEntry(dream: list[i]),
+        itemBuilder: (_, i) => DreamEntry(dream: list[i], list: list),
         itemCount: list.length,
       ) : Center(child: EmptyState(
         icon: Icon(Icons.post_add),
@@ -140,14 +141,29 @@ class _Padding extends MaterialStateProperty<EdgeInsetsGeometry> {
 
 class DreamEntry extends StatelessWidget {
   final DreamRecord dream;
+  final List<DreamRecord>? list;
 
-  DreamEntry({Key? key, required this.dream}) : super(key: key);
+  DreamEntry({Key? key, required this.dream, this.list}) : super(key: key);
   
   @override
   Widget build(BuildContext context) {
     var _dateFormat = sharedPreferences.containsKey("datetime-format")
       ? sharedPreferences.getString("datetime-format") : DateTimeFormats.commonLogFormat;
     return Column(children: [
+      if (OptionalFeatures.nightly && list?.firstWhere((element) => element.night == dream.night) == dream) Padding(
+        padding: EdgeInsets.symmetric(
+          horizontal: 8.0,
+          vertical: 4.0
+        ),
+        child: Row(
+          children: [
+            Text(
+              "Night of ${dream.night.format("M j")} to ${dream.night.add(Duration(days: 1)).format("M j")}",
+              style: TextStyle(color: Get.theme.primaryColor, fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
+      ),
       if (!dream.incomplete) ListTile(
         title: Text(dream.forgotten && dream.title == ""
             ? "No dream logged"
