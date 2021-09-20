@@ -17,6 +17,11 @@ import 'package:url_launcher/url_launcher.dart';
 late List<DreamRecord> dreamList;
 
 class DreamListScreen extends StatefulWidget {
+
+  DreamListScreen({
+    Key? key
+  }) : super(key: key);
+
   @override
   _DreamListScreenState createState() => _DreamListScreenState();
 }
@@ -69,7 +74,16 @@ class _DreamListScreenState extends State<DreamListScreen> {
         icon: Icon(Icons.post_add),
         text: Text("This journal is a ghost town!\nWrite down some dreams!"),
       ))
-      : Center(child: CircularProgressIndicator(value: null)),
+      : FutureBuilder(
+        builder: (context, snapshot) => snapshot.connectionState == ConnectionState.done ? Center(child: EmptyState(
+          icon: Icon(Mdi.contentSaveAlertOutline),
+          text: Text("The database could not be read.\n"
+          "Maybe you imported the wrong file!\n"
+          "Try importing a valid dream journal database file,\n"
+          "or Burn the journal if you have to.")
+        )) : Center(child: CircularProgressIndicator(value: null)),
+        future: Future.delayed(Duration(seconds: 3)),
+      ),
       bottomNavigationBar: isListInitialized ? BottomAppBar(
         child: Row(
           //buttonTextTheme: ButtonTextTheme.primary,
@@ -152,6 +166,8 @@ class DreamEntry extends StatelessWidget {
   Widget build(BuildContext context) {
     var _dateFormat = sharedPreferences.containsKey("datetime-format")
       ? sharedPreferences.getString("datetime-format") : DateTimeFormats.commonLogFormat;
+      var _nightFormat = sharedPreferences.containsKey("night-format")
+      ? sharedPreferences.getString("night-format") ?? "M j" : "M j";
     return Column(children: [
       if (OptionalFeatures.nightly && list?.firstWhere((element) => element.night == dream.night) == dream) Padding(
         padding: EdgeInsets.symmetric(
@@ -161,7 +177,7 @@ class DreamEntry extends StatelessWidget {
         child: Row(
           children: [
             Text(
-              "Night of ${dream.night.format("M j")} to ${dream.night.add(Duration(days: 1)).format("M j")}",
+              "Night of ${dream.night.format(_nightFormat)} to ${dream.night.add(Duration(days: 1)).format(_nightFormat)}",
               style: TextStyle(color: Get.theme.primaryColor, fontWeight: FontWeight.bold),
             ),
           ],

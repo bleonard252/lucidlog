@@ -22,6 +22,7 @@ class SettingsRoot extends StatelessWidget {
       children: [
         Settings.SwitchSettingsTile(
           title: "AMOLED Dark Mode",
+          subtitle: "Sets the background to pure black, saving battery and maybe your eyeballs on AMOLED devices.",
           settingKey: "amoled-dark",
           icon: Icon(Icons.nights_stay),
         ),
@@ -33,14 +34,15 @@ class SettingsRoot extends StatelessWidget {
         Settings.SimpleSettingsTile(
           title: "Optional features",
           icon: Icon(Mdi.featureSearch),
-          subtitle: "WILD Distinction, plotlines, and other features that might "
+          subtitle: "WILD Distinction, grouping entries by night, and other features that might "
           "be too confusing for some users or get in the way",
           screen: OptionalFeaturesSettingsScreen(),
         ),
         Settings.RadioSettingsTile(
           settingKey: "datetime-format",
           title: "Date format",
-          icon: Icon(Icons.date_range),
+          expandable: true,
+          icon: Icon(Icons.date_range, color: Get.iconColor),
           defaultKey: AmericanDateTimeFormats.abbrDayOfWeekAbbr,
           values: {
             AmericanDateTimeFormats.abbrDayOfWeekAbbr: "Tue Nov 5, 2019 7:42 pm",
@@ -49,7 +51,20 @@ class SettingsRoot extends StatelessWidget {
             EuropeanDateTimeFormats.short: "05/11/2019 19:42"
           },
         ),
-        Settings.SimpleSettingsTile(
+        if (OptionalFeatures.nightly) Settings.RadioSettingsTile(
+          settingKey: "night-format",
+          title: "Format for night headers",
+          expandable: true,
+          icon: Icon(Mdi.weatherNight, color: Get.iconColor),
+          defaultKey: r"M j",
+          values: {
+            r"M j": "Nov 5",
+            r"j M": "5 Nov",
+            r"m/d": "11/05",
+            r"d/m": "05/11"
+          },
+        ),
+        if (OptionalFeatures.rememberMethods) Settings.SimpleSettingsTile(
           title: "Techniques",
           subtitle: "Used to remember what techniques you used to become lucid.",
           icon: Icon(Mdi.viewList),
@@ -66,6 +81,11 @@ class SettingsRoot extends StatelessWidget {
           // ],
           screen: MethodsSettingsScreen(),
         ),
+        ListTile(
+          title: Text("About"),
+          leading: Icon(Icons.info),
+          onTap: () => Get.toNamed("/about"),
+        ),
         Settings.SettingsTileGroup(
           title: "Storage",
           children: [
@@ -74,15 +94,16 @@ class SettingsRoot extends StatelessWidget {
               subtitle: Text(platformStorageDir.absolute.path),
               leading: Icon(Icons.sd_storage)
             ),
-            if (GetPlatform.isAndroid || GetPlatform.isDesktop) ListTile(
+            Divider(height: 0.0),
+            if (GetPlatform.isAndroid || GetPlatform.isDesktop) ...[ListTile(
               leading: Icon(Icons.save),
               title: Text("Export"),
               subtitle: Text("Save a copy of your dream journal's database."),
               onTap: () async {
                 FilePickerCross(File(platformStorageDir.absolute.path + "/dreamjournal.db").readAsBytesSync()).exportToStorage(fileName: "dreamjournal.db");
               },
-            ),
-            if (GetPlatform.isAndroid || GetPlatform.isDesktop) ListTile(
+            ), Divider(height: 0.0)],
+            if (GetPlatform.isAndroid || GetPlatform.isDesktop) ...[ListTile(
               leading: Icon(Icons.folder),
               title: Text("Import"),
               subtitle: Text("Load a backup of your dream journal's database."),
@@ -108,19 +129,46 @@ class SettingsRoot extends StatelessWidget {
                   ],
                 ));
               },
-            )
+            ), Divider(height: 0.0)],
+            ...[ListTile(
+              leading: Icon(Mdi.fire, color: Colors.red),
+              title: Text("Burn", style: TextStyle(color: Colors.red)),
+              subtitle: Text("Remove all journal entries.", style: TextStyle(color: Colors.red)),
+              onTap: () async {
+                //FilePickerCross(File.fromUri(Uri.parse(sharedPreferences.getString("storage-path") ?? "")).readAsBytesSync()).exportToStorage(fileName: "dreamjournal.db");
+                final confirmation = await Get.dialog(AlertDialog(
+                  title: Text("Are you sure you want to import this?"),
+                  content: Text("Burning the database WILL clear your entire journal! Make sure you've performed a backup."),
+                  actions: [
+                    TextButton(onPressed: () => Get.back(result: false), child: Text("STAY SAFE")),
+                    TextButton(onPressed: () => Get.back(result: true), child: Text("YES", style: TextStyle(color: Colors.red))),
+                  ],
+                ));
+                if (confirmation == false) return;
+                await database.close();
+                await File(platformStorageDir.absolute.path + "/dreamjournal.db").delete();
+                await Get.dialog(AlertDialog(
+                  title: Text("Immediate restart required"),
+                  content: Text("The app will now restart to finish applying this change."),
+                  actions: [
+                    TextButton(onPressed: () => exit(0), child: Text("OK")),
+                  ],
+                ));
+              },
+            ), Divider(height: 0.0)]
           ]
         ),
-        if (canUseNotifications == true) Settings.SettingsTileGroup(
-          title: "Notifications",
-          children: [
-            ListTile(
-              title: Text("Test Notification"),
-              leading: Icon(Icons.notifications_active),
-              onTap: () => RealityCheck.schedule(),
-            )
-          ],
-        ),
+        // if (canUseNotifications == true) Settings.SettingsTileGroup(
+        //   title: "Notifications",
+        //   children: [
+        //     ListTile(
+        //       title: Text("Test Notification"),
+        //       leading: Icon(Icons.notifications_active),
+        //       onTap: () => RealityCheck.schedule(),
+        //     ),
+        //     Divider(height: 0.0),
+        //   ],
+        // ),
       ]
     );
   }

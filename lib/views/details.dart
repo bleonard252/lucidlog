@@ -32,7 +32,7 @@ class DreamDetails extends StatelessWidget {
     if (OptionalFeatures.wildDistinction && dream.wild)
       output.add("WILD "+(list!.wilds.indexOf(dream)+1).toString());
     if (list!.sameNight(as: dream).length > 1) 
-      output.add("Dream ${list!.sameNight(as: dream).indexOf(dream)} of the night");
+      output.add("Dream ${list!.sameNight(as: dream).indexOf(dream)+1} of ${list!.sameNight(as: dream).length} of the night");
     // TODO: streaks!
     return output;
   }

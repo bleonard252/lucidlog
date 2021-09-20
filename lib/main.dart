@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:get/get.dart';
 import 'package:journal/db/dream.dart';
+import 'package:journal/views/about.dart';
 import 'package:journal/widgets/empty_state.dart';
 import 'package:journal/views/details.dart';
 import 'package:journal/views/editor.dart';
@@ -128,7 +129,8 @@ class MyApp extends StatelessWidget {
           GetPage(name: "/complete", middlewares: [OnboardingMiddleware()], page: () => DreamEdit(mode: DreamEditMode.complete, dream: Get.arguments as DreamRecord)),
           GetPage(name: "/details", middlewares: [OnboardingMiddleware()], page: () => middleSegment(DreamDetails(Get.arguments as DreamRecord)), transition: Transition.fadeIn, opaque: false),
           GetPage(name: "/search", middlewares: [OnboardingMiddleware()], page: () => SearchScreen()),
-          GetPage(name: "/onboarding", page: () => OnboardingScreen())
+          GetPage(name: "/onboarding", page: () => OnboardingScreen()),
+          GetPage(name: "/about", page: () => AboutScreen()),
         ]
       ],
     );
