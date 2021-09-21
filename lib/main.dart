@@ -39,6 +39,8 @@ void main() async {
     : GetPlatform.isIOS ? await getApplicationDocumentsDirectory()
     : GetPlatform.isWindows ? await getApplicationDocumentsDirectory()
     : await getApplicationSupportDirectory();
+  sharedPreferences.setString("last-version", "5");
+  // TODO: perform migrations depending on version changes
   if (sharedPreferences.getBool("onboarding-completed") ?? false) {
     // platformStorageDir = GetPlatform.isIOS ? await getApplicationDocumentsDirectory()
     // : Directory(sharedPreferences.getString("storage-path") ?? "");

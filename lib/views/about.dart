@@ -1,6 +1,7 @@
 import "package:flutter/material.dart";
 import 'package:get/get.dart';
 import 'package:mdi/mdi.dart';
+import 'package:simple_icons/simple_icons.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class AboutScreen extends StatelessWidget {
@@ -33,7 +34,7 @@ class AboutScreen extends StatelessWidget {
           onTap: () => launch("https://github.com/bleonard252/lucidlog"),
         ),
         // ListTile(
-        //   leading: Icon(Mdi.discord),
+        //   leading: Icon(SimpleIcons.discord),
         //   title: Text("Support Server"),
         //   subtitle: Text("discord.gg/???"),
         //   onTap: () => launch("https://github.com/bleonard252/lucidlog"),

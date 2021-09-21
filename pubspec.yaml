@@ -1,5 +1,5 @@
 name: journal
-description: A new Flutter project.
+description: LucidLog Dream Journal is a simple dream journal app with optional features.
 
 # The following line prevents the package from being accidentally published to
 # pub.dev using `pub publish`. This is preferred for private packages.
@@ -15,7 +15,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
-version: 4.0.0+14
+version: 5.0.0+15
 
 environment:
   sdk: '>=2.12.0 <3.0.0'
@@ -29,6 +29,7 @@ dependencies:
   #shared_preferences_linux: ^2.0.0
   introduction_screen: ^2.1.0
   mdi: ^5.0.0-nullsafety.0
+  simple_icons: ^5.14.0
   date_field: ^2.0.1
   date_time_format: ^2.0.1
   flutter_local_notifications: ^5.0.0+4
