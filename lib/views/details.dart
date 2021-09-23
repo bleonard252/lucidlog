@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:journal/db/dream.dart';
 import 'package:journal/main.dart';
-import 'package:journal/views/list.dart';
 import 'package:journal/views/optional_features.dart';
 import 'package:journal/widgets/gradienticon.dart';
 import 'package:mdi/mdi.dart';
@@ -25,7 +24,7 @@ class DreamDetails extends StatelessWidget {
   DreamDetails(this.dream, {Key? key}) : super(key: key);
 
   List<String> calculateCounters() {
-    assert(list != null, "Counters must be enabled and list must be given");
+    assert(list != null && list != [], "Counters must be enabled and list must be given");
     List<String> output = [];
     output.add("Dream "+(list!.lastIndexOf(dream)+1).toString());
     if (dream.lucid) output.add("LD "+(list!.lucids.lastIndexOf(dream)+1).toString());

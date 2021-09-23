@@ -14,8 +14,6 @@ import 'package:objectdb/objectdb.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-late List<DreamRecord> dreamList;
-
 class DreamListScreen extends StatefulWidget {
 
   DreamListScreen({

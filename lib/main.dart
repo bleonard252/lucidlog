@@ -32,6 +32,7 @@ late final List databasev6;
 late final SharedPreferences sharedPreferences;
 late final FlutterLocalNotificationsPlugin? notificationsPlugin;
 late final bool? canUseNotifications;
+late List<DreamRecord> dreamList;
 
 /// The version that the app is running on. This should match up with the current version number,
 /// and is shown in About to verify it.

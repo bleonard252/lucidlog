@@ -11,7 +11,8 @@ import 'package:mdi/mdi.dart';
 import 'package:objectdb/objectdb.dart';
 import 'package:path_provider/path_provider.dart';
 
-import 'list.dart';
+import 'list.dart' show DreamEntry;
+//late List<DreamRecord> dreamList;
 
 enum SearchListMode {
   /// A text-based search in the title or body.
@@ -35,41 +36,44 @@ class _SearchScreenState extends State<SearchScreen> {
   List<DreamRecord> list = [];
   late TextEditingController controller;
 
-  Future<void> reloadDreamList() {
-    //TODO: remove this section before v6!
-    if (appVersion == "5") {
-      return database.find({}).then<void>((value) async {
-        List<DreamRecord> _list = [];
-        List<Future> _futures = [];
-        value.where((document) => document['title'].contains(controller.value.text) || document['body'].contains(controller.value.text))
-        .forEach((element) {
-          var _ = DreamRecord(id: element["_id"]);
-          _futures.add(_.loadDocument());
-          _list.add(_);
-        });
-        await Future.wait(_futures);
-        _list.sort((a, b) => a.timestamp.compareTo(b.timestamp));
-        list = _list.reversed.toList();
-        if (controller.value.text == "") list = [];
-        dreamList = list;
-        setState(() {});
-      });
-    } else {
-      List<DreamRecord> _list = [];
-      List<Future> _futures = [];
-      databasev6.where((document) => document['title'].contains(controller.value.text) || document['body'].contains(controller.value.text))
-      .forEach((element) {
-        var _ = DreamRecord(document: element);
-        _futures.add(_.loadDocument());
-        _list.add(_);
-      });
-      _list.sort((a, b) => a.timestamp.compareTo(b.timestamp));
-      list = _list.reversed.toList();
-      if (controller.value.text == "") list = [];
-      dreamList = list;
-      setState(() {});
-      return Future.value();
-    }
+  Future<void> reloadDreamList() async {
+    // //TODO: remove this section before v6!
+    // if (appVersion == "5") {
+    //   return database.find({}).then<void>((value) async {
+    //     List<DreamRecord> _list = [];
+    //     List<Future> _futures = [];
+    //     value.where((document) => document['title'].contains(controller.value.text) || document['body'].contains(controller.value.text))
+    //     .forEach((element) {
+    //       var _ = DreamRecord(id: element["_id"]);
+    //       _futures.add(_.loadDocument());
+    //       _list.add(_);
+    //     });
+    //     await Future.wait(_futures);
+    //     _list.sort((a, b) => a.timestamp.compareTo(b.timestamp));
+    //     list = _list.reversed.toList();
+    //     if (controller.value.text == "") list = [];
+    //     //dreamList = list;
+    //     setState(() {});
+    //   });
+    // } else {
+    //   List<DreamRecord> _list = [];
+    //   List<Future> _futures = [];
+    //   databasev6.where((document) => document['title'].contains(controller.value.text) || document['body'].contains(controller.value.text))
+    //   .forEach((element) {
+    //     var _ = DreamRecord(document: element);
+    //     _futures.add(_.loadDocument());
+    //     _list.add(_);
+    //   });
+    //   _list.sort((a, b) => a.timestamp.compareTo(b.timestamp));
+    //   list = _list.reversed.toList();
+    //   if (controller.value.text == "") list = [];
+    //   //dreamList = list;
+    //   setState(() {});
+    //   return Future.value();
+    // }
+    list = dreamList.where((document) => document.title.contains(controller.value.text) || document.body.contains(controller.value.text)).toList();
+    if (controller.value.text == "") list = [];
+    setState(() {});
   }
 
   // Future<void> reloadDreamList() {
