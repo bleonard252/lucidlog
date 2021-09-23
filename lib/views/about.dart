@@ -1,5 +1,6 @@
 import "package:flutter/material.dart";
 import 'package:get/get.dart';
+import 'package:journal/main.dart';
 import 'package:mdi/mdi.dart';
 import 'package:simple_icons/simple_icons.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -20,12 +21,17 @@ class AboutScreen extends StatelessWidget {
         ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-          child: Text("Version 5", style: Get.textTheme.headline6),
+          child: Text("Version "+(appVersion ?? "not found"), style: Get.textTheme.headline6),
         ),
         ListTile(
           title: Text("Licenses"),
           leading: Icon(Mdi.license),
           onTap: () => showLicensePage(context: context, applicationName: "LucidLog Dream Journal"),
+        ),
+        ListTile(
+          title: Text("Revert to database from v5"),
+          leading: Icon(Mdi.numeric5BoxOutline),
+          onTap: () => sharedPreferences.setString("last-version", "5"),
         ),
         ListTile(
           leading: Icon(Mdi.xml),

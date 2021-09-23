@@ -31,21 +31,38 @@ class _DreamListScreenState extends State<DreamListScreen> {
   bool isListInitialized = false;
 
   Future<void> reloadDreamList() {
-    return database.find({}).then<void>((value) async {
+    //TODO: remove this section before v6!
+    if (appVersion == "5") {
+      return database.find({}).then<void>((value) async {
+        List<DreamRecord> _list = [];
+        List<Future> _futures = [];
+        value.forEach((element) {
+          var _ = DreamRecord(id: element["_id"]);
+          _futures.add(_.loadDocument());
+          _list.add(_);
+        });
+        await Future.wait(_futures);
+        _list.sort((a, b) => a.timestamp.compareTo(b.timestamp));
+        list = _list.reversed.toList();
+        dreamList = list;
+        isListInitialized = true;
+        setState(() {});
+      });
+    } else {
       List<DreamRecord> _list = [];
       List<Future> _futures = [];
-      value.forEach((element) {
-        var _ = DreamRecord(element["_id"], database: database);
+      databasev6.forEach((element) {
+        var _ = DreamRecord(document: element);
         _futures.add(_.loadDocument());
         _list.add(_);
       });
-      await Future.wait(_futures);
       _list.sort((a, b) => a.timestamp.compareTo(b.timestamp));
       list = _list.reversed.toList();
       dreamList = list;
       isListInitialized = true;
       setState(() {});
-    });
+      return Future.value();
+    }
   }
 
   @override
@@ -62,7 +79,10 @@ class _DreamListScreenState extends State<DreamListScreen> {
         actions: [
           IconButton(
             icon: Icon(Icons.settings),
-            onPressed: () => Get.toNamed("/settings"),
+            onPressed: () {
+              Get.toNamed("/settings");
+              setState(() {});
+            },
           )
         ],
       ),
