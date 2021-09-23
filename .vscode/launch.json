@@ -10,6 +10,11 @@
       "type": "dart"
     },
     {
+      "name": "lucidlog (attach)",
+      "request": "attach",
+      "type": "dart"
+    },
+    {
       "name": "lucidlog (profile mode)",
       "request": "launch",
       "type": "dart",
