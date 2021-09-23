@@ -10,6 +10,7 @@ import 'package:journal/widgets/gradienticon.dart';
 import 'package:mdi/mdi.dart';
 import 'package:objectdb/objectdb.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:string_similarity/string_similarity.dart';
 
 import 'list.dart' show DreamEntry;
 //late List<DreamRecord> dreamList;
@@ -21,12 +22,37 @@ enum SearchListMode {
   /// Shows a list of recorded **dreams**.
   listOrFilter
 }
+/// A filter, as used by the search screen
+/// to filter elements.
+class SearchFilter {
+  /// The localized name displayed as the title.
+  final String name;
+  /// A predicate, as used in [List.where].
+  final bool Function(DreamRecord) predicate;
+  /// Set to false to force-hide night headers,
+  /// and true to allow their display.
+  /// Mutually exclusive with the [sorter].
+  final bool respectNightly;
+  /// Used to sort the entries depending on what's most important.
+  /// If this is null, the list is not sorted.
+  /// Mutually exclusive with [respectNightly].
+  final int Function(DreamRecord a, DreamRecord b)? sorter;
+
+  SearchFilter({
+    required this.name,
+    required this.predicate,
+    this.respectNightly = false,
+    this.sorter
+  }) : assert(respectNightly || sorter == null, "respectNightly and sorter are mutually exclusive.");
+}
 
 class SearchScreen extends StatefulWidget {
   final SearchListMode mode;
-  late final String title;
+  final SearchFilter? filter;
 
-  SearchScreen({this.mode = SearchListMode.search, this.title = ""});
+  SearchScreen({this.mode = SearchListMode.search, this.filter})
+  : assert(mode == SearchListMode.search 
+  || (mode == SearchListMode.listOrFilter && filter != null));
 
   @override
   _SearchScreenState createState() => _SearchScreenState();
@@ -71,7 +97,17 @@ class _SearchScreenState extends State<SearchScreen> {
     //   setState(() {});
     //   return Future.value();
     // }
-    list = dreamList.where((document) => document.title.contains(controller.value.text) || document.body.contains(controller.value.text)).toList();
+    if (widget.mode == SearchListMode.search) {
+      final _list = dreamList.where((document) => document.title.contains(controller.value.text) || document.body.contains(controller.value.text)).toList();
+      //list.sort((a, b) => (StringSimilarity.compareTwoStrings(a.title + a.body, b.title + b.body)*3).floor()-2);
+      _list.sort((a, b) => (StringSimilarity.compareTwoStrings(controller.value.text, a.title + a.body)
+        .compareTo(StringSimilarity.compareTwoStrings(controller.value.text, b.title + b.body))));
+      //StringSimilarity.findBestMatch(controller.value.text, _list.map((e) => e.title+"\n"+e.body).toList()).ratings.map((e) => e.target);
+      list = _list;
+    } else if (widget.mode == SearchListMode.listOrFilter) {
+      list = dreamList.where(widget.filter!.predicate).toList();
+      if (widget.filter!.sorter == null) list.sort(widget.filter!.sorter);
+    }
     if (controller.value.text == "") list = [];
     setState(() {});
   }
@@ -106,7 +142,7 @@ class _SearchScreenState extends State<SearchScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: widget.mode == SearchListMode.listOrFilter ? Text(widget.title)
+        title: widget.mode == SearchListMode.listOrFilter ? Text(widget.filter!.name)
         : TextField(
           controller: controller,
           decoration: InputDecoration(
