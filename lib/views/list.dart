@@ -184,7 +184,7 @@ class DreamEntry extends StatelessWidget {
   Widget build(BuildContext context) {
     var _dateFormat = sharedPreferences.containsKey("datetime-format")
       ? sharedPreferences.getString("datetime-format") : DateTimeFormats.commonLogFormat;
-      var _nightFormat = sharedPreferences.containsKey("night-format")
+    var _nightFormat = sharedPreferences.containsKey("night-format")
       ? sharedPreferences.getString("night-format") ?? "M j" : "M j";
     return Column(children: [
       if (OptionalFeatures.nightly && list?.firstWhere((element) => element.night == dream.night) == dream) Padding(

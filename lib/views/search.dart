@@ -4,6 +4,8 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:journal/db/dream.dart';
+import 'package:date_time_format/date_time_format.dart';
+import 'package:journal/views/optional_features.dart';
 import 'package:journal/widgets/empty_state.dart';
 import 'package:journal/main.dart';
 import 'package:journal/widgets/gradienticon.dart';
@@ -37,12 +39,14 @@ class SearchFilter {
   /// If this is null, the list is not sorted.
   /// Mutually exclusive with [respectNightly].
   final int Function(DreamRecord a, DreamRecord b)? sorter;
+  final List<Widget>? actions;
 
   SearchFilter({
     required this.name,
     required this.predicate,
     this.respectNightly = false,
-    this.sorter
+    this.sorter,
+    this.actions
   }) : assert(respectNightly || sorter == null, "respectNightly and sorter are mutually exclusive.");
 }
 
@@ -105,10 +109,11 @@ class _SearchScreenState extends State<SearchScreen> {
       //StringSimilarity.findBestMatch(controller.value.text, _list.map((e) => e.title+"\n"+e.body).toList()).ratings.map((e) => e.target);
       list = _list;
     } else if (widget.mode == SearchListMode.listOrFilter) {
+      assert(widget.filter != null, "listOrFilter requires a filter to be set");
       list = dreamList.where(widget.filter!.predicate).toList();
-      if (widget.filter!.sorter == null) list.sort(widget.filter!.sorter);
+      if (widget.filter?.sorter != null) list.sort(widget.filter!.sorter);
     }
-    if (controller.value.text == "") list = [];
+    if (widget.mode == SearchListMode.search && controller.value.text == "") list = [];
     setState(() {});
   }
 
@@ -150,79 +155,106 @@ class _SearchScreenState extends State<SearchScreen> {
             border: InputBorder.none
           ),
           onChanged: (v) => reloadDreamList(),
-        )
+        ),
+        actions: widget.filter?.actions,
       ),
       body: list.length > 0 ? ListView.builder(
-        itemBuilder: (_, i) => DreamEntry(dream: list[i]),
-        itemCount: list.length,
-      ) : controller.value.text == "" ? ListView(children: [
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Text("Warning: these buttons don't work yet! The below serves as a preview for features I expect to add in the future.\n"
-          + "However, regular search works exactly how you expect it to."),
+        itemBuilder: (_, i) => DreamEntry(
+          dream: list[i],
+          list: (widget.filter?.respectNightly ?? false) && OptionalFeatures.nightly ? list : null
         ),
+        itemCount: list.length,
+      ) : controller.value.text == "" ? widget.mode == SearchListMode.search ? ListView(children: [
+        // Padding(
+        //   padding: const EdgeInsets.all(8.0),
+        //   child: Text("Warning: some of these buttons don't work yet! The below serves as a preview for features I expect to add in the future.\n"
+        //   + "However, regular search works exactly how you expect it to."),
+        // ),
         ListTile(
           leading: GradientIcon(Icons.cloud, 24.0, purpleGradient),
           title: Text("Filter to Lucid Only"),
-          subtitle: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text("Filter to show lucid dreams only"),
-              Wrap(
-                children: [
-                  TextButton(
-                    onPressed: null,
-                    child: Text("Filter to Non-Lucid Only"),
-                    //style: ButtonStyle(foregroundColor: _Gold())
-                  ),
-                  Container(width: 16, height: 0),
-                  TextButton(
-                    onPressed: null,
-                    child: Text("Filter to WILD Only"),
-                    //style: ButtonStyle(foregroundColor: _Gold())
-                  ),
-                  Container(width: 16, height: 0),
-                  TextButton(
-                    onPressed: null,
-                    child: Text("Filter to DILD Only"),
-                    //style: ButtonStyle(foregroundColor: _Gold())
-                  ),
-                ],
-              )
-            ],
-          ),
+          subtitle: Text("Filter to show lucid dreams only"),
+          onTap: () => Get.to(() => SearchScreen(
+            mode: SearchListMode.listOrFilter,
+            filter: SearchFilter(
+              name: "Lucid Dreams Only",
+              predicate: (dream) => dream.lucid,
+              respectNightly: true
+            ),
+          )),
         ),
         ListTile(
-          leading: Icon(Icons.public),
-          title: Text("List Persistent Realms"),
-          subtitle: Text("A tool for the talented."),
-        ),
+          title: Text("Filter to Non-Lucid Only"),
+          onTap: () => Get.to(() => SearchScreen(
+            mode: SearchListMode.listOrFilter,
+            filter: SearchFilter(
+              name: "Non-lucid Dreams Only",
+              predicate: (dream) => !dream.lucid,
+              respectNightly: true
+            ),
+          )),
+        ).subtile(),
         ListTile(
           leading: Icon(Icons.dark_mode),
           title: Text("By Night"),
           subtitle: Text("Search by date"),
+          onTap: () async {
+            final fromDate = await showDatePicker(
+              context: context,
+              initialDate: DateTime.now(),
+              firstDate: dreamList.last.night,
+              lastDate: (DateTime.now().isBefore(dreamList.first.night) ? dreamList.first.night : DateTime.now()).add(Duration(hours: 12))
+            );
+            if (fromDate == null) return;
+            var _nightFormat = sharedPreferences.containsKey("night-format")
+            ? sharedPreferences.getString("night-format") ?? "M j" : "M j";
+            Get.to(() => SearchScreen(
+              mode: SearchListMode.listOrFilter,
+              filter: SearchFilter(
+                name: "Night of ${fromDate.format(_nightFormat)} to ${fromDate.add(Duration(days: 1)).format(_nightFormat)}",
+                predicate: (dream) => dream.night == fromDate,
+                respectNightly: false //because they're all on the same night anyway
+              ),
+            ));
+          },
         ),
         ListTile(
           leading: Icon(Icons.cloud_off),
           title: Text("List Insufficient Recall"),
-          subtitle: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text("Find dreams with low recall, and try to finish them."),
-              TextButton(
-                onPressed: null,
-                child: Text("List Sufficient Recall"),
-                //style: ButtonStyle(foregroundColor: _Gold()),
-              )
-            ],
-          ),
-        )
+          subtitle: Text("Find dreams with low recall, and try to finish them."),
+          onTap: () => Get.to(() => SearchScreen(
+            mode: SearchListMode.listOrFilter,
+            filter: SearchFilter(
+              name: "Insufficient Recall Only",
+              predicate: (dream) => dream.forgotten,
+              respectNightly: true
+            ),
+          )),
+        ),
+        ListTile(
+          title: Text("List Sufficient Recall"),
+          onTap: () => Get.to(() => SearchScreen(
+            mode: SearchListMode.listOrFilter,
+            filter: SearchFilter(
+              name: "Sufficient Recall Only",
+              predicate: (dream) => !dream.forgotten,
+              respectNightly: true
+            ),
+          )),
+        ).subtile(),
+        ListTile(
+          leading: Icon(Icons.public),
+          title: Text("List Persistent Realms"),
+          subtitle: Text("A tool for the talented."),
+          enabled: false,
+        ),
       ]) : Center(child: EmptyState(
         icon: Icon(Icons.search_off),
+        text: Text("No items matched the filter."),
+      )) : Center(child: EmptyState(
+        icon: Icon(Icons.search_off),
         text: Text("The search uncovered no results. Try revising your search."),
-      ),)
+      ))
     );
   }
 }
@@ -240,5 +272,42 @@ class _Gold extends MaterialStateColor {
       return _pressedColor;
     }
     return _defaultColor;
+  }
+}
+
+extension ListSubtile on ListTile {
+  @override
+  Widget subtile() {
+    return ListTile(
+      leading: Container(width: 24, height: 0),
+      title: title != null ? DefaultTextStyle(
+        style: Get.textTheme.button!,
+        child: title!
+      ) : null,
+      dense: true,
+
+      subtitle: subtitle,
+      autofocus: autofocus,
+      contentPadding: contentPadding,
+      enableFeedback: enableFeedback,
+      enabled: enabled,
+      focusColor: focusColor,
+      focusNode: focusNode,
+      horizontalTitleGap: horizontalTitleGap,
+      hoverColor: hoverColor,
+      isThreeLine: isThreeLine,
+      key: key,
+      minLeadingWidth: minLeadingWidth,
+      minVerticalPadding: minVerticalPadding,
+      mouseCursor: mouseCursor,
+      onLongPress: onLongPress,
+      onTap: onTap,
+      selected: selected,
+      selectedTileColor: selectedTileColor,
+      shape: shape,
+      tileColor: tileColor,
+      trailing: trailing,
+      visualDensity: visualDensity,
+    );
   }
 }
