@@ -30,6 +30,7 @@ late final Directory platformStorageDir;
 @deprecated
 late final ObjectDB database;
 late final List databasev6;
+late final File databaseFile;
 late final SharedPreferences sharedPreferences;
 late final FlutterLocalNotificationsPlugin? notificationsPlugin;
 late final bool? canUseNotifications;
@@ -91,8 +92,8 @@ void main() async {
     // }
     database = ObjectDB(FileSystemStorage(GetPlatform.isIOS ? (await getApplicationDocumentsDirectory()).absolute.path + "/dreamjournal.db"
     : platformStorageDir.absolute.path + "/dreamjournal.db")); //sharedPreferences.getString("storage-path")!));
-    databasev6 = jsonDecode(await File(GetPlatform.isIOS ? (await getApplicationDocumentsDirectory()).absolute.path + "/dreamjournal.json"
-    : platformStorageDir.absolute.path + "/dreamjournal.json").readAsString()) as dynamic; //sharedPreferences.getString("storage-path")!));
+    databaseFile = File(platformStorageDir.absolute.path + "/dreamjournal.json");
+    databasev6 = jsonDecode(await databaseFile.readAsString()) as dynamic; //sharedPreferences.getString("storage-path")!));
   }
   try {
     notificationsPlugin = FlutterLocalNotificationsPlugin();

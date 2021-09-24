@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:math';
 import 'dart:ui';
 
@@ -6,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:journal/db/dream.dart';
 import 'package:journal/views/optional_features.dart';
+import 'package:journal/views/details.dart' show DreamList;
 import 'package:journal/widgets/empty_state.dart';
 import 'package:journal/main.dart';
 import 'package:journal/widgets/gradienticon.dart';
@@ -27,6 +29,7 @@ class DreamListScreen extends StatefulWidget {
 class _DreamListScreenState extends State<DreamListScreen> {
   late List<DreamRecord> list;
   bool isListInitialized = false;
+  bool isSaving = false;
 
   Future<void> reloadDreamList() {
     //TODO: remove this section before v6!
@@ -58,8 +61,8 @@ class _DreamListScreenState extends State<DreamListScreen> {
       list = _list.reversed.toList();
       dreamList = list;
       isListInitialized = true;
-      setState(() {});
-      return Future.value();
+      setState(() => isSaving = true);
+      return databaseFile.writeAsString(jsonEncode(list.toListOfMap())).then((v) => setState(() => isSaving = false));
     }
   }
 
@@ -73,7 +76,7 @@ class _DreamListScreenState extends State<DreamListScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Dream Journal"),
+        title: Text(isSaving ? "Saving..." : "Dream Journal"),
         actions: [
           IconButton(
             icon: Icon(Icons.settings),
@@ -130,7 +133,7 @@ class _DreamListScreenState extends State<DreamListScreen> {
                   ),
                 ),
               ) : Container(width: 0, height: 0)
-            ), 
+            ),
             Expanded(child: Container(height: 0)),
             // Padding(
             //   padding: const EdgeInsets.all(8.0),

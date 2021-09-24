@@ -15,6 +15,8 @@ extension DreamList on List<DreamRecord> {
   List<DreamRecord> get lucids => this.where((element) => element.lucid).toList();
   List<DreamRecord> get wilds => this.where((element) => element.wild).toList();
   List<DreamRecord> sameNight({required DreamRecord as}) => this.where((element) => element.night == as.night).toList();
+  /// Quickly returns all of the documents in this list in a JSON-compatible format.
+  List<Map> toListOfMap() => this.map((e) => e.toJSON()).toList();
 }
 
 class DreamDetails extends StatelessWidget {

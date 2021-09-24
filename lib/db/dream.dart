@@ -16,6 +16,8 @@ class DreamRecord {
   assert(id != null || document != null),
   this._document = document ?? {};
 
+  Map toJSON() => _document;
+
   Future<void> loadDocument() async {
     // TODO: remove this by release!
     if (appVersion == "5") {
@@ -81,8 +83,10 @@ class DreamRecord {
   // LucidDreamMethod? get method => _document["method"];
   // set method(LucidDreamMethod value) => __update(_document, {"method": value});
 
-  Future<int> delete() {
-    return database.remove({"_id": id});
+  Future<void> delete() {
+    if (appVersion == "5")
+      return database.remove({"_id": id});
+    else return Future.value(databasev6.remove(_document));
   }
 
   /// Tags the user has applied to this dream.
