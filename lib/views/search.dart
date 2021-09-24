@@ -102,10 +102,13 @@ class _SearchScreenState extends State<SearchScreen> {
     //   return Future.value();
     // }
     if (widget.mode == SearchListMode.search) {
-      final _list = dreamList.where((document) => document.title.contains(controller.value.text) || document.body.contains(controller.value.text)).toList();
+      final _list = dreamList.where((document) => 
+        document.title.toLowerCase().contains(controller.value.text.toLowerCase())
+        || document.body.toLowerCase().contains(controller.value.text.toLowerCase())
+      ).toList();
       //list.sort((a, b) => (StringSimilarity.compareTwoStrings(a.title + a.body, b.title + b.body)*3).floor()-2);
-      _list.sort((a, b) => (StringSimilarity.compareTwoStrings(controller.value.text, a.title + a.body)
-        .compareTo(StringSimilarity.compareTwoStrings(controller.value.text, b.title + b.body))));
+      _list.sort((a, b) => (StringSimilarity.compareTwoStrings(controller.value.text.toLowerCase(), (a.title + a.body).toLowerCase())
+        .compareTo(StringSimilarity.compareTwoStrings(controller.value.text.toLowerCase(), (b.title + b.body).toLowerCase()))));
       //StringSimilarity.findBestMatch(controller.value.text, _list.map((e) => e.title+"\n"+e.body).toList()).ratings.map((e) => e.target);
       list = _list;
     } else if (widget.mode == SearchListMode.listOrFilter) {
@@ -165,11 +168,14 @@ class _SearchScreenState extends State<SearchScreen> {
         ] : widget.filter?.actions,
       ),
       body: list.length > 0 ? ListView.builder(
-        itemBuilder: (_, i) => DreamEntry(
-          dream: list[i],
+        itemBuilder: (_, i) => i == 0 && widget.mode == SearchListMode.search ? Padding(
+            padding: EdgeInsets.all(8.0),
+            child: Text("Found ${list.length} results", style: Get.textTheme.button?.copyWith(color: Get.theme.primaryColor)),
+          ) : DreamEntry(
+          dream: list[widget.mode == SearchListMode.search ? i-1 : i],
           list: (widget.filter?.respectNightly ?? false) && OptionalFeatures.nightly ? list : null
         ),
-        itemCount: list.length,
+        itemCount: widget.mode == SearchListMode.search ? list.length+1 : list.length,
       ) : controller.value.text == "" ? widget.mode == SearchListMode.search ? ListView(children: [
         // Padding(
         //   padding: const EdgeInsets.all(8.0),
@@ -200,6 +206,32 @@ class _SearchScreenState extends State<SearchScreen> {
             ),
           )),
         ).subtile(),
+        Divider(height: 0.0),
+        if (OptionalFeatures.wildDistinction) ...[ListTile(
+          leading: GradientIcon(Mdi.weatherLightning, 24.0, goldGradient),
+          title: Text("Filter to WILD Only"),
+          subtitle: Text("Filter to show wake-initiated lucid dreams only"),
+          onTap: () => Get.to(() => SearchScreen(
+            mode: SearchListMode.listOrFilter,
+            filter: SearchFilter(
+              name: "WILD Only",
+              predicate: (dream) => dream.wild,
+              respectNightly: true
+            ),
+          )),
+        ),
+        ListTile(
+          title: Text("Filter to DILD Only"),
+          subtitle: Text("Filter to show dream-initiated lucid dreams only"),
+          onTap: () => Get.to(() => SearchScreen(
+            mode: SearchListMode.listOrFilter,
+            filter: SearchFilter(
+              name: "DILD Only",
+              predicate: (dream) => !dream.wild,
+              respectNightly: true
+            ),
+          )),
+        ).subtile(), Divider(height: 0.0)],
         ListTile(
           leading: Icon(Icons.dark_mode),
           title: Text("By Night"),
@@ -224,6 +256,7 @@ class _SearchScreenState extends State<SearchScreen> {
             ));
           },
         ),
+        Divider(height: 0.0),
         ListTile(
           leading: Icon(Icons.cloud_off),
           title: Text("List Insufficient Recall"),
@@ -248,6 +281,7 @@ class _SearchScreenState extends State<SearchScreen> {
             ),
           )),
         ).subtile(),
+        Divider(height: 0.0),
         ListTile(
           leading: Icon(Icons.public),
           title: Text("List Persistent Realms"),

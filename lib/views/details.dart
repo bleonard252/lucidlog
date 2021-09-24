@@ -6,6 +6,7 @@ import 'package:get/get.dart';
 import 'package:journal/db/dream.dart';
 import 'package:journal/main.dart';
 import 'package:journal/views/optional_features.dart';
+import 'package:journal/views/search.dart';
 import 'package:journal/widgets/gradienticon.dart';
 import 'package:mdi/mdi.dart';
 import 'package:date_time_format/date_time_format.dart';
@@ -42,6 +43,8 @@ class DreamDetails extends StatelessWidget {
   Widget build(BuildContext context) {
     var _dateFormat = sharedPreferences.containsKey("datetime-format")
       ? sharedPreferences.getString("datetime-format") : DateTimeFormats.commonLogFormat;
+    var _nightFormat = sharedPreferences.containsKey("night-format")
+      ? sharedPreferences.getString("night-format") ?? "M j" : "M j";
     return Material(
       color: Get.theme.canvasColor,
       child: Container(
@@ -240,6 +243,14 @@ class DreamDetails extends StatelessWidget {
                     title: Text("Date and Time"),
                     subtitle: Text(dream.timestamp.format(_dateFormat ?? DateTimeFormats.commonLogFormat), 
                       maxLines: 1, overflow: TextOverflow.ellipsis, softWrap: false),
+                    onTap: () => Get.to(() => SearchScreen(
+                      mode: SearchListMode.listOrFilter,
+                      filter: SearchFilter(
+                        name: "Night of ${dream.night.format(_nightFormat)} to ${dream.night.add(Duration(days: 1)).format(_nightFormat)}",
+                        predicate: (otherdream) => otherdream.night == dream.night,
+                        respectNightly: true
+                      ),
+                    )),
                   ),
                   if (OptionalFeatures.counters) ListTile(
                     leading: Icon(Mdi.clockOutline),
