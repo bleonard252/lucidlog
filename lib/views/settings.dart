@@ -110,26 +110,37 @@ class SettingsRoot extends StatelessWidget {
               subtitle: Text("Load a backup of your dream journal's database, overwriting it."),
               onTap: () async {
                 //FilePickerCross(File.fromUri(Uri.parse(sharedPreferences.getString("storage-path") ?? "")).readAsBytesSync()).exportToStorage(fileName: "dreamjournal.db");
-                final file = await FilePickerCross.importFromStorage(type: FileTypeCross.any);
-                final confirmation = await Get.dialog(AlertDialog(
-                  title: Text("Are you sure you want to import this?"),
-                  content: Text("Importing this WILL clear your entire journal! Make sure you've performed a backup, and make sure you are importing the correct file.\n"
-                  "No checks are done to make sure you're importing valid data, so you have to do it yourself!"),
-                  actions: [
-                    TextButton(onPressed: () => Get.back(result: false), child: Text("STAY SAFE")),
-                    TextButton(onPressed: () => Get.back(result: true), child: Text("YES", style: TextStyle(color: Colors.red))),
-                  ],
-                ));
-                if (confirmation == false) return;
-                if (appVersion == "5") await database.close();
-                await File(platformStorageDir.absolute.path + (appVersion == "5" ? "/dreamjournal.db" : "/dreamjournal.json")).writeAsBytes(file.toUint8List());
-                await Get.dialog(AlertDialog(
-                  title: Text("Immediate restart required"),
-                  content: Text("The app will now restart to finish applying this change."),
-                  actions: [
-                    TextButton(onPressed: () => exit(0), child: Text("OK")),
-                  ],
-                ));
+                try {
+                  await Get.dialog(AlertDialog(
+                    title: Text("Import warning"),
+                    content: Text("""The database has changed recently and the file is now a ".json", NOT a ".db". ".db" files are no longer supported for import."""),
+                    actions: [
+                      TextButton(onPressed: () => Get.back(), child: Text("OK")),
+                    ],
+                  ));
+                  final file = await FilePickerCross.importFromStorage(type: FileTypeCross.any);
+                  final confirmation = await Get.dialog(AlertDialog(
+                    title: Text("Are you sure you want to import this?"),
+                    content: Text("Importing this WILL clear your entire journal! Make sure you've performed a backup, and make sure you are importing the correct file.\n"
+                    "No checks are done to make sure you're importing valid data, so you have to do it yourself!"),
+                    actions: [
+                      TextButton(onPressed: () => Get.back(result: false), child: Text("STAY SAFE")),
+                      TextButton(onPressed: () => Get.back(result: true), child: Text("YES", style: TextStyle(color: Colors.red))),
+                    ],
+                  ));
+                  if (confirmation == false) return;
+                  if (appVersion == "5") await database.close();
+                  await File(platformStorageDir.absolute.path + (appVersion == "5" ? "/dreamjournal.db" : "/dreamjournal.json")).writeAsBytes(file.toUint8List());
+                  await Get.dialog(AlertDialog(
+                    title: Text("Immediate restart required"),
+                    content: Text("The app will now restart to finish applying this change."),
+                    actions: [
+                      TextButton(onPressed: () => exit(0), child: Text("OK")),
+                    ],
+                  ));
+                } catch(_) {
+                  return;
+                }
               },
             ), Divider(height: 0.0)],
             ...[ListTile(
