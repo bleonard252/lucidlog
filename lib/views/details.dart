@@ -273,6 +273,85 @@ class DreamDetails extends StatelessWidget {
                 ]))
               ),
             ),
+            if (OptionalFeatures.comments) Container(
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              width: 999999999,
+              child: Material(
+                elevation: 2,
+                type: MaterialType.card,
+                color: Get.theme.cardColor,
+                borderRadius: BorderRadius.all(Radius.circular(0)),
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children:[
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Text("Comments", 
+                      style: Get.textTheme.subtitle1?.copyWith(fontWeight: FontWeight.w700)),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      mainAxisSize: MainAxisSize.max,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(child: TextField(
+                          decoration: InputDecoration(
+                            labelText: "New comment"
+                          ),
+                        )),
+                        IconButton(
+                          icon: Icon(Icons.send),
+                          onPressed: () => {},
+                        )
+                      ],
+                    )
+                  ),
+                  InkWell( // This is the template entry for each comment
+                    onLongPress: () => showDialog(context: context, builder: (context) => Stack(
+                      alignment: Alignment.bottomCenter,
+                      children: [Positioned(
+                        bottom: 8,
+                        child: Dialog(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              TextButton(
+                                child: Container(width: 360, child: Text("Edit"), alignment: Alignment.center),
+                                onPressed: () => Get.back(),
+                              ),
+                              TextButton(
+                                child: Container(width: 360, child: Text("Delete", style: TextStyle(color: Colors.red)), alignment: Alignment.center),
+                                onPressed: () => Get.back(),
+                              )
+                            ],
+                          ),
+                        ),
+                      )],
+                    )),
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(DateTime.now().format(_dateFormat ?? DateTimeFormats.commonLogFormat), style: Get.textTheme.caption),
+                          MarkdownBody(
+                            data: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Tristique sollicitudin nibh sit amet commodo nulla facilisi nullam. Ut venenatis tellus in metus vulputate eu. Suspendisse in est ante in. Sed felis eget velit aliquet sagittis id consectetur purus ut. Facilisis gravida neque convallis a. At varius vel pharetra vel turpis.",
+                            selectable: true,
+                            softLineBreak: true,
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 8.0),
+                            child: Divider(height: 1.0),
+                          )
+                        ],
+                      )
+                    ),
+                  )
+                ])
+              )
+            ),
           ]
         ))
       )
