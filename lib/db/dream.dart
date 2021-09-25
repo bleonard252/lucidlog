@@ -8,36 +8,38 @@ import 'package:mdi/mdi.dart';
 import 'package:objectdb/objectdb.dart';
 
 class DreamRecord {
-  final String id;
-  final ObjectDB database;
+  final String? id;
+  //final ObjectDB database;
   late Map _document;
 
-  DreamRecord(this.id, {
-    required ObjectDB database
-  }) : database = database;
+  DreamRecord({this.id, Map? document}) :
+  assert(id != null || document != null),
+  this._document = document ?? {};
+
+  Map toJSON() => _document;
 
   Future<void> loadDocument() async {
-    _document = await database.first({"_id": id});
-    /// WILD migration from flag to method
-    if (_document["wild"] == true && !methods.contains("WILD")) {
-      await database.update(_document, {
-        Op.set: {"methods": [...(_document["methods"] ?? []), "WILD"]}
-      });
-      _document = await database.first({"_id": id});
-    }
+    if (this.id != null) _document = database.firstWhere((element) => element["_id"] == id);
+    // /// WILD migration from flag to method
+    // if (_document["wild"] == true && !methods.contains("WILD")) {
+    //   await _update(_document, {
+    //     Op.set: {"methods": [...(_document["methods"] ?? []), "WILD"]}
+    //   });
+    //   _document = await database.first({"_id": id});
+    // }
   }
   
   /// The dream's title.
   String get title => _document["title"] ?? "No title provided";
-  set title(String value) => database.update(_document, {"title": value});
+  set title(String value) => _update(_document, {"title": value});
 
   /// The dream's "body," or summary.
   String get body => _document["body"] ?? "No body provided";
-  set body(String value) => database.update(_document, {"body": value});
+  set body(String value) => _update(_document, {"body": value});
 
   /// Whether or not the dream was lucid.
   bool get lucid => _document["lucid"] ?? false;
-  set lucid(bool value) => database.update(_document, {"lucid": value});
+  set lucid(bool value) => _update(_document, {"lucid": value});
 
   /// Name, colors, and icons related to the dream category.
   _DreamType get type => _DreamType.withRecall(
@@ -57,33 +59,33 @@ class DreamRecord {
   // @Deprecated("Use type instead.")
   // bool get wild => _document["wild"] ?? false;
   bool get wild => this.methods.contains("WILD") || this.methods.contains("SSILD") || methods.contains("DEILD");
-  // set wild(bool value) => database.update(_document, {"wild": value});
+  // set wild(bool value) => _update(_document, {"wild": value});
 
   /// If the dream was forgotten or otherwise not remembered with much integrity.
   /// Any details provided will still be shown.
   bool get forgotten => _document["forgotten"] ?? false;
-  set forgotten(bool value) => database.update(_document, {"forgotten": value});
+  set forgotten(bool value) => _update(_document, {"forgotten": value});
 
   /// The date and time at which this dream was recorded.
   DateTime get timestamp => DateTime.fromMillisecondsSinceEpoch(_document.containsKey("timestamp") ? _document["timestamp"] : 0);
-  set timestamp(DateTime value) => database.update(_document, {"timestamp": value.millisecondsSinceEpoch});
+  set timestamp(DateTime value) => _update(_document, {"timestamp": value.millisecondsSinceEpoch});
   static final dtzero = DateTime.fromMillisecondsSinceEpoch(0);
 
   List<String> get methods => List.castFrom<dynamic, String>(_document["methods"] ?? []);
-  set methods(List<String> value) => database.update(_document, {"methods": value});
+  set methods(List<String> value) => _update(_document, {"methods": value});
 
   // /// The method used.
   // LucidDreamMethod? get method => _document["method"];
-  // set method(LucidDreamMethod value) => _database.update(_document, {"method": value});
+  // set method(LucidDreamMethod value) => __update(_document, {"method": value});
 
-  Future<int> delete() {
-    return database.remove({"_id": id});
+  Future<void> delete() {
+    return Future.value(database.remove(_document));
   }
 
   /// Tags the user has applied to this dream.
   /// Used for "tagging" dreams to recall them later.
   List<String> get tags => (_document["tags"] ?? []).whereType<String>().toList();
-  set tags(List<String> value) => database.update(_document, {"tags": value});
+  set tags(List<String> value) => _update(_document, {"tags": value});
 
   /// Is the dream incompletely logged?
   /// This is set to `true` after tagging
@@ -92,7 +94,16 @@ class DreamRecord {
   /// This changes how the entry is shown on
   /// the Home and Search screens.
   bool get incomplete => _document["incomplete"] ?? false;
-  set incomplete(bool value) => database.update(_document, {"incomplete": value});
+  set incomplete(bool value) => _update(_document, {"incomplete": value});
+
+  void _update(Map query, Map patch) {
+    var index = database.indexOf(_document);
+    database[index] = {
+      ..._document,
+      ...patch
+    };
+    _document = database[index];
+  }
 }
 
 class _DreamType {

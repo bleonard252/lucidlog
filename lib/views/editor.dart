@@ -228,6 +228,7 @@ class _DreamEditState extends State<DreamEdit> {
       },
       onDone: () async {
         var newData = {
+          "_id": widget.dream?.id ?? ObjectId().hexString,
           "title": titleController.value.text,
           "body": summaryController.value.text,
           "timestamp": dateValue.millisecondsSinceEpoch,
@@ -238,8 +239,11 @@ class _DreamEditState extends State<DreamEdit> {
           "methods": isDreamLucid ? methods : [],
           "incomplete": (widget.mode == DreamEditMode.tag)
         };
-        if (widget.mode == DreamEditMode.create || widget.mode == DreamEditMode.tag) database.insert(newData);
-        else await database.update({"_id": widget.dream!.id}, newData);
+        if (widget.mode == DreamEditMode.create || widget.mode == DreamEditMode.tag) {
+          database.add(newData);
+        } else {
+          database[database.indexWhere((element) => element["_id"] == widget.dream!.id)] = newData;
+        }
         Get.offAllNamed("/");
       },
     );

@@ -5,8 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:journal/db/dream.dart';
 import 'package:journal/main.dart';
-import 'package:journal/views/list.dart';
 import 'package:journal/views/optional_features.dart';
+import 'package:journal/views/search.dart';
 import 'package:journal/widgets/gradienticon.dart';
 import 'package:mdi/mdi.dart';
 import 'package:date_time_format/date_time_format.dart';
@@ -16,6 +16,8 @@ extension DreamList on List<DreamRecord> {
   List<DreamRecord> get lucids => this.where((element) => element.lucid).toList();
   List<DreamRecord> get wilds => this.where((element) => element.wild).toList();
   List<DreamRecord> sameNight({required DreamRecord as}) => this.where((element) => element.night == as.night).toList();
+  /// Quickly returns all of the documents in this list in a JSON-compatible format.
+  List<Map> toListOfMap() => this.map((e) => e.toJSON()).toList();
 }
 
 class DreamDetails extends StatelessWidget {
@@ -25,7 +27,7 @@ class DreamDetails extends StatelessWidget {
   DreamDetails(this.dream, {Key? key}) : super(key: key);
 
   List<String> calculateCounters() {
-    assert(list != null, "Counters must be enabled and list must be given");
+    assert(list != null && list != [], "Counters must be enabled and list must be given");
     List<String> output = [];
     output.add("Dream "+(list!.lastIndexOf(dream)+1).toString());
     if (dream.lucid) output.add("LD "+(list!.lucids.lastIndexOf(dream)+1).toString());
@@ -41,6 +43,8 @@ class DreamDetails extends StatelessWidget {
   Widget build(BuildContext context) {
     var _dateFormat = sharedPreferences.containsKey("datetime-format")
       ? sharedPreferences.getString("datetime-format") : DateTimeFormats.commonLogFormat;
+    var _nightFormat = sharedPreferences.containsKey("night-format")
+      ? sharedPreferences.getString("night-format") ?? "M j" : "M j";
     return Material(
       color: Get.theme.canvasColor,
       child: Container(
@@ -239,6 +243,14 @@ class DreamDetails extends StatelessWidget {
                     title: Text("Date and Time"),
                     subtitle: Text(dream.timestamp.format(_dateFormat ?? DateTimeFormats.commonLogFormat), 
                       maxLines: 1, overflow: TextOverflow.ellipsis, softWrap: false),
+                    onTap: () => Get.to(() => SearchScreen(
+                      mode: SearchListMode.listOrFilter,
+                      filter: SearchFilter(
+                        name: "Night of ${dream.night.format(_nightFormat)} to ${dream.night.add(Duration(days: 1)).format(_nightFormat)}",
+                        predicate: (otherdream) => otherdream.night == dream.night,
+                        respectNightly: true
+                      ),
+                    )),
                   ),
                   if (OptionalFeatures.counters) ListTile(
                     leading: Icon(Mdi.clockOutline),

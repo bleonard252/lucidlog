@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:math';
 import 'dart:ui';
 
@@ -6,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:journal/db/dream.dart';
 import 'package:journal/views/optional_features.dart';
+import 'package:journal/views/details.dart' show DreamList;
 import 'package:journal/widgets/empty_state.dart';
 import 'package:journal/main.dart';
 import 'package:journal/widgets/gradienticon.dart';
@@ -13,8 +15,6 @@ import 'package:mdi/mdi.dart';
 import 'package:objectdb/objectdb.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
-
-late List<DreamRecord> dreamList;
 
 class DreamListScreen extends StatefulWidget {
 
@@ -29,23 +29,22 @@ class DreamListScreen extends StatefulWidget {
 class _DreamListScreenState extends State<DreamListScreen> {
   late List<DreamRecord> list;
   bool isListInitialized = false;
+  bool isSaving = false;
 
   Future<void> reloadDreamList() {
-    return database.find({}).then<void>((value) async {
-      List<DreamRecord> _list = [];
-      List<Future> _futures = [];
-      value.forEach((element) {
-        var _ = DreamRecord(element["_id"], database: database);
-        _futures.add(_.loadDocument());
-        _list.add(_);
-      });
-      await Future.wait(_futures);
-      _list.sort((a, b) => a.timestamp.compareTo(b.timestamp));
-      list = _list.reversed.toList();
-      dreamList = list;
-      isListInitialized = true;
-      setState(() {});
+    List<DreamRecord> _list = [];
+    List<Future> _futures = [];
+    database.forEach((element) {
+      var _ = DreamRecord(document: element);
+      _futures.add(_.loadDocument());
+      _list.add(_);
     });
+    _list.sort((a, b) => a.timestamp.compareTo(b.timestamp));
+    list = _list.reversed.toList();
+    dreamList = list;
+    isListInitialized = true;
+    setState(() => isSaving = true);
+    return databaseFile.writeAsString(jsonEncode(list.toListOfMap())).then((v) => setState(() => isSaving = false));
   }
 
   @override
@@ -58,11 +57,14 @@ class _DreamListScreenState extends State<DreamListScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Dream Journal"),
+        title: Text(isSaving ? "Saving..." : "Dream Journal"),
         actions: [
           IconButton(
             icon: Icon(Icons.settings),
-            onPressed: () => Get.toNamed("/settings"),
+            onPressed: () {
+              Get.toNamed("/settings");
+              setState(() {});
+            },
           )
         ],
       ),
@@ -112,7 +114,7 @@ class _DreamListScreenState extends State<DreamListScreen> {
                   ),
                 ),
               ) : Container(width: 0, height: 0)
-            ), 
+            ),
             Expanded(child: Container(height: 0)),
             // Padding(
             //   padding: const EdgeInsets.all(8.0),
@@ -166,7 +168,7 @@ class DreamEntry extends StatelessWidget {
   Widget build(BuildContext context) {
     var _dateFormat = sharedPreferences.containsKey("datetime-format")
       ? sharedPreferences.getString("datetime-format") : DateTimeFormats.commonLogFormat;
-      var _nightFormat = sharedPreferences.containsKey("night-format")
+    var _nightFormat = sharedPreferences.containsKey("night-format")
       ? sharedPreferences.getString("night-format") ?? "M j" : "M j";
     return Column(children: [
       if (OptionalFeatures.nightly && list?.firstWhere((element) => element.night == dream.night) == dream) Padding(

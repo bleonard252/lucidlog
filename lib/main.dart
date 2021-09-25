@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
@@ -6,7 +7,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:get/get.dart';
 import 'package:journal/db/dream.dart';
+import 'package:journal/migrations/databasev6.dart';
 import 'package:journal/views/about.dart';
+import 'package:journal/views/statistics.dart';
 import 'package:journal/widgets/empty_state.dart';
 import 'package:journal/views/details.dart';
 import 'package:journal/views/editor.dart';
@@ -14,6 +17,8 @@ import 'package:journal/views/list.dart';
 import 'package:journal/views/onboarding.dart';
 import 'package:journal/views/search.dart';
 import 'package:journal/views/settings.dart';
+import 'package:journal/widgets/preflight.dart';
+import 'package:mdi/mdi.dart';
 import 'package:objectdb/objectdb.dart';
 // ignore: implementation_imports
 import 'package:objectdb/src/objectdb_storage_filesystem.dart';
@@ -22,10 +27,19 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 late final Directory platformStorageDir;
-late final ObjectDB database;
+late final File databaseFile;
+late final List database;
 late final SharedPreferences sharedPreferences;
 late final FlutterLocalNotificationsPlugin? notificationsPlugin;
 late final bool? canUseNotifications;
+late List<DreamRecord> dreamList;
+
+/// The version that the app is running on. This should match up with the current version number,
+/// and is shown in About to verify it.
+/// It should be checked during migration to determine the effective version
+/// of the app's database and settings,
+/// and to confirm that no further migrations need to be done.
+String? get appVersion => sharedPreferences.getString("last-version");
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -39,8 +53,35 @@ void main() async {
     : GetPlatform.isIOS ? await getApplicationDocumentsDirectory()
     : GetPlatform.isWindows ? await getApplicationDocumentsDirectory()
     : await getApplicationSupportDirectory();
-  sharedPreferences.setString("last-version", "5");
-  // TODO: perform migrations depending on version changes
+  /// Migrations which have been removed should be added here.
+  const unsupportedVersions = ["4"];
+  if (unsupportedVersions.contains(appVersion)) {
+    return runApp(PreflightScreen(
+      child: EmptyState(
+        icon: Icon(Mdi.alertOctagon),
+        text: Text("The app's previous version is too old.\n"
+        "You will need to uninstall the app, then try again."),
+        preflight: true,
+      )
+    ));
+  }
+  if (appVersion == "5") {
+    print("running database migration: 5 -> 6");
+    runApp(PreflightScreen(
+      child: EmptyState(
+        icon: Icon(Mdi.uploadMultiple),
+        text: Text("The database is being upgraded. Please wait."),
+        preflight: true,
+      )
+    ));
+    await databaseMigrationVersion6();
+    //sharedPreferences.setString("last-version", "4");
+    //await Future.delayed(Duration(seconds: 3));
+    //TODO: a bunch of stuff relating to the database
+    sharedPreferences.setString("last-version", "6");
+  }
+  sharedPreferences.setString("last-version", "6 beta 1");
+  databaseFile = File(platformStorageDir.absolute.path + "/dreamjournal.json");
   if (sharedPreferences.getBool("onboarding-completed") ?? false) {
     // platformStorageDir = GetPlatform.isIOS ? await getApplicationDocumentsDirectory()
     // : Directory(sharedPreferences.getString("storage-path") ?? "");
@@ -48,8 +89,9 @@ void main() async {
     //   var _result = await Permission.storage.request();
     //   if (_result != PermissionStatus.granted) return runApp(MyApp(permissionDenied: true));
     // }
-    database = ObjectDB(FileSystemStorage(GetPlatform.isIOS ? (await getApplicationDocumentsDirectory()).absolute.path + "/dreamjournal.db"
-    : platformStorageDir.absolute.path + "/dreamjournal.db")); //sharedPreferences.getString("storage-path")!));
+    // database = ObjectDB(FileSystemStorage(GetPlatform.isIOS ? (await getApplicationDocumentsDirectory()).absolute.path + "/dreamjournal.db"
+    // : platformStorageDir.absolute.path + "/dreamjournal.db")); //sharedPreferences.getString("storage-path")!));
+    database = jsonDecode(await databaseFile.readAsString()) as dynamic; //sharedPreferences.getString("storage-path")!));
   }
   try {
     notificationsPlugin = FlutterLocalNotificationsPlugin();
@@ -131,6 +173,7 @@ class MyApp extends StatelessWidget {
           GetPage(name: "/complete", middlewares: [OnboardingMiddleware()], page: () => DreamEdit(mode: DreamEditMode.complete, dream: Get.arguments as DreamRecord)),
           GetPage(name: "/details", middlewares: [OnboardingMiddleware()], page: () => middleSegment(DreamDetails(Get.arguments as DreamRecord)), transition: Transition.fadeIn, opaque: false),
           GetPage(name: "/search", middlewares: [OnboardingMiddleware()], page: () => SearchScreen()),
+          GetPage(name: "/stats", middlewares: [OnboardingMiddleware()], page: () => middleSegment(StatisticsScreen()), transition: Transition.fadeIn, opaque: false),
           GetPage(name: "/onboarding", page: () => OnboardingScreen()),
           GetPage(name: "/about", page: () => AboutScreen()),
         ]
