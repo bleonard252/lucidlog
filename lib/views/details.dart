@@ -4,6 +4,7 @@ import 'package:file_picker_cross/file_picker_cross.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:get/get.dart';
+import 'package:journal/db/comment.dart';
 import 'package:journal/db/dream.dart';
 import 'package:journal/main.dart';
 import 'package:journal/views/optional_features.dart';
@@ -306,55 +307,70 @@ class DreamDetails extends StatelessWidget {
                       ],
                     )
                   ),
-                  InkWell( // This is the template entry for each comment
-                    onLongPress: () => showDialog(context: context, builder: (context) => Stack(
-                      alignment: Alignment.bottomCenter,
-                      children: [Positioned(
-                        bottom: 8,
-                        child: Dialog(
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              TextButton(
-                                child: Container(width: 360, child: Text("Edit"), alignment: Alignment.center),
-                                onPressed: () => Get.back(),
-                              ),
-                              TextButton(
-                                child: Container(width: 360, child: Text("Delete", style: TextStyle(color: Colors.red)), alignment: Alignment.center),
-                                onPressed: () => Get.back(),
-                              )
-                            ],
-                          ),
-                        ),
-                      )],
-                    )),
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(DateTime.now().format(_dateFormat ?? DateTimeFormats.commonLogFormat), style: Get.textTheme.caption),
-                          MarkdownBody(
-                            data: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Tristique sollicitudin nibh sit amet commodo nulla facilisi nullam. Ut venenatis tellus in metus vulputate eu. Suspendisse in est ante in. Sed felis eget velit aliquet sagittis id consectetur purus ut. Facilisis gravida neque convallis a. At varius vel pharetra vel turpis.",
-                            selectable: true,
-                            softLineBreak: true,
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 8.0),
-                            child: Divider(height: 1.0),
-                          )
-                        ],
-                      )
-                    ),
-                  )
+                  _DreamComment(DreamCommentRecord(
+                    body: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Tristique sollicitudin nibh sit amet commodo nulla facilisi nullam. Ut venenatis tellus in metus vulputate eu. Suspendisse in est ante in. Sed felis eget velit aliquet sagittis id consectetur purus ut. Facilisis gravida neque convallis a. At varius vel pharetra vel turpis.",
+                    timestamp: DateTime.now()
+                  ))
                 ])
               )
             ),
           ]
         ))
       )
+    );
+  }
+}
+
+class _DreamComment extends StatelessWidget {
+  final DreamCommentRecord comment;
+  const _DreamComment(this.comment, { Key? key }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    var _dateFormat = sharedPreferences.containsKey("datetime-format")
+      ? sharedPreferences.getString("datetime-format") : DateTimeFormats.commonLogFormat;
+    return InkWell(
+      onLongPress: () => showDialog(context: context, builder: (context) => Stack(
+        alignment: Alignment.bottomCenter,
+        children: [Positioned(
+          bottom: 8,
+          child: Dialog(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextButton(
+                  child: Container(width: 360, child: Text("Edit"), alignment: Alignment.center),
+                  onPressed: () => Get.back(),
+                ),
+                TextButton(
+                  child: Container(width: 360, child: Text("Delete", style: TextStyle(color: Colors.red)), alignment: Alignment.center),
+                  onPressed: () => Get.back(),
+                )
+              ],
+            ),
+          ),
+        )],
+      )),
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(comment.timestamp.format(_dateFormat ?? DateTimeFormats.commonLogFormat), style: Get.textTheme.caption),
+            MarkdownBody(
+              data: comment.body,
+              selectable: true,
+              softLineBreak: true,
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8.0),
+              child: Divider(height: 1.0),
+            )
+          ],
+        )
+      ),
     );
   }
 }
