@@ -228,7 +228,7 @@ class _DreamEditState extends State<DreamEdit> {
       },
       onDone: () async {
         var newData = {
-          "_id": ObjectId(),
+          "_id": widget.dream?.id ?? ObjectId().hexString,
           "title": titleController.value.text,
           "body": summaryController.value.text,
           "timestamp": dateValue.millisecondsSinceEpoch,
