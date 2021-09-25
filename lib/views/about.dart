@@ -29,6 +29,12 @@ class AboutScreen extends StatelessWidget {
           onTap: () => showLicensePage(context: context, applicationName: "LucidLog Dream Journal"),
         ),
         ListTile(
+          title: Text("Privacy"),
+          subtitle: Text("No personal information is collected and no data leaves the app without your direct instruction."),
+          leading: Icon(Mdi.noteText),
+          onTap: () => launch("https://ldr.1024256.xyz/appendix/app-policy"),
+        ),
+        ListTile(
           title: Text("Revert to database from v5"),
           leading: Icon(Mdi.numeric5BoxOutline),
           onTap: () => sharedPreferences.setString("last-version", "5"),
