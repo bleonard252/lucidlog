@@ -40,6 +40,7 @@ dependencies:
   file_picker_cross: ^4.4.2
   share_plus: ^2.1.4
   string_similarity: ^2.0.0
+  flutter_markdown: ^0.6.6
   flutter:
     sdk: flutter
 

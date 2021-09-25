@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:file_picker_cross/file_picker_cross.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:get/get.dart';
 import 'package:journal/db/dream.dart';
 import 'package:journal/main.dart';
@@ -93,16 +94,24 @@ class DreamDetails extends StatelessWidget {
               Expanded(
                 child: Container(
                   padding: EdgeInsets.all(24),
-                  child: Text(
-                    dream.title,
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: null,
-                    style: Get.textTheme.headline4
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.max,
+                      children: [
+                        Text(
+                          dream.title,
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 3,
+                          style: Get.textTheme.headline4
+                        ),
+                      ],
+                    ),
                   )
                 ),
               ),
             ],),
-            Container(
+            if (dream.body.isNotEmpty) Container(
               padding: const EdgeInsets.symmetric(vertical: 4),
               width: 999999999,
               child: Material(
@@ -118,7 +127,11 @@ class DreamDetails extends StatelessWidget {
                   ),
                   Padding(
                     padding: const EdgeInsets.all(8.0),
-                    child: SelectableText(dream.body)//Text(room.topic, style: Get.textTheme.bodyText2),
+                    child: MarkdownBody(
+                      data: dream.body,
+                      selectable: true,
+                      softLineBreak: true,
+                    )
                   )
                 ])
               )

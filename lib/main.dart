@@ -67,6 +67,7 @@ void main() async {
   }
   if (appVersion == "5") {
     print("running database migration: 5 -> 6");
+    final migration = databaseMigrationVersion6();
     runApp(PreflightScreen(
       child: EmptyState(
         icon: Icon(Mdi.uploadMultiple),
@@ -74,13 +75,10 @@ void main() async {
         preflight: true,
       )
     ));
-    await databaseMigrationVersion6();
-    //sharedPreferences.setString("last-version", "4");
-    //await Future.delayed(Duration(seconds: 3));
-    //TODO: a bunch of stuff relating to the database
+    await migration;
     sharedPreferences.setString("last-version", "6");
   }
-  sharedPreferences.setString("last-version", "6 beta 1");
+  sharedPreferences.setString("last-version", "6 beta 2");
   databaseFile = File(platformStorageDir.absolute.path + "/dreamjournal.json");
   if (sharedPreferences.getBool("onboarding-completed") ?? false) {
     // platformStorageDir = GetPlatform.isIOS ? await getApplicationDocumentsDirectory()
