@@ -34,7 +34,7 @@ class _DreamListScreenState extends State<DreamListScreen> {
   Future<void> reloadDreamList() {
     List<DreamRecord> _list = [];
     List<Future> _futures = [];
-    databasev6.forEach((element) {
+    database.forEach((element) {
       var _ = DreamRecord(document: element);
       _futures.add(_.loadDocument());
       _list.add(_);

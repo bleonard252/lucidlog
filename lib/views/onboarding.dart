@@ -123,7 +123,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         //   if (_result != PermissionStatus.granted) return runApp(MyApp(permissionDenied: true));
         // }
         //ignore: assignment_to_final
-        databasev6 = jsonDecode(await databaseFile.readAsString()) as dynamic;
+        database = jsonDecode(await databaseFile.readAsString()) as dynamic;
         Get.offAllNamed("/");
       },
     );

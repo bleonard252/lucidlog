@@ -19,7 +19,7 @@ class DreamRecord {
   Map toJSON() => _document;
 
   Future<void> loadDocument() async {
-    if (this.id != null) _document = databasev6.firstWhere((element) => element["_id"] == id);
+    if (this.id != null) _document = database.firstWhere((element) => element["_id"] == id);
     // /// WILD migration from flag to method
     // if (_document["wild"] == true && !methods.contains("WILD")) {
     //   await _update(_document, {
@@ -79,7 +79,7 @@ class DreamRecord {
   // set method(LucidDreamMethod value) => __update(_document, {"method": value});
 
   Future<void> delete() {
-    return Future.value(databasev6.remove(_document));
+    return Future.value(database.remove(_document));
   }
 
   /// Tags the user has applied to this dream.
@@ -97,12 +97,12 @@ class DreamRecord {
   set incomplete(bool value) => _update(_document, {"incomplete": value});
 
   void _update(Map query, Map patch) {
-    var index = databasev6.indexOf(_document);
-    databasev6[index] = {
+    var index = database.indexOf(_document);
+    database[index] = {
       ..._document,
       ...patch
     };
-    _document = databasev6[index];
+    _document = database[index];
   }
 }
 
