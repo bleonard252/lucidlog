@@ -240,10 +240,9 @@ class _DreamEditState extends State<DreamEdit> {
           "incomplete": (widget.mode == DreamEditMode.tag)
         };
         if (widget.mode == DreamEditMode.create || widget.mode == DreamEditMode.tag) {
-          if (appVersion == "5") database.insert(newData); else databasev6.add(newData);
+          databasev6.add(newData);
         } else {
-          if (appVersion == "5") await database.update({"_id": widget.dream!.id}, newData);
-          else databasev6[databasev6.indexWhere((element) => element["_id"] == widget.dream!.id)] = newData;
+          databasev6[databasev6.indexWhere((element) => element["_id"] == widget.dream!.id)] = newData;
         }
         Get.offAllNamed("/");
       },

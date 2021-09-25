@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import "package:flutter/material.dart";
 import 'package:get/get.dart';
 import 'package:journal/main.dart';
@@ -37,7 +39,10 @@ class AboutScreen extends StatelessWidget {
         ListTile(
           title: Text("Revert to database from v5"),
           leading: Icon(Mdi.numeric5BoxOutline),
-          onTap: () => sharedPreferences.setString("last-version", "5"),
+          onTap: () async {
+            await sharedPreferences.setString("last-version", "5");
+            exit(0);
+          },
         ),
         ListTile(
           leading: Icon(Mdi.xml),

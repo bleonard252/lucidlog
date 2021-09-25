@@ -19,12 +19,7 @@ class DreamRecord {
   Map toJSON() => _document;
 
   Future<void> loadDocument() async {
-    // TODO: remove this by release!
-    if (appVersion == "5") {
-      _document = await database.first({"_id": id!});
-    } else {
-      if (this.id != null) _document = databasev6.firstWhere((element) => element["_id"] == id);
-    }
+    if (this.id != null) _document = databasev6.firstWhere((element) => element["_id"] == id);
     // /// WILD migration from flag to method
     // if (_document["wild"] == true && !methods.contains("WILD")) {
     //   await _update(_document, {
@@ -84,9 +79,7 @@ class DreamRecord {
   // set method(LucidDreamMethod value) => __update(_document, {"method": value});
 
   Future<void> delete() {
-    if (appVersion == "5")
-      return database.remove({"_id": id});
-    else return Future.value(databasev6.remove(_document));
+    return Future.value(databasev6.remove(_document));
   }
 
   /// Tags the user has applied to this dream.
@@ -104,17 +97,12 @@ class DreamRecord {
   set incomplete(bool value) => _update(_document, {"incomplete": value});
 
   void _update(Map query, Map patch) {
-    //TODO: drop this before v6!
-    if (appVersion == "5") {
-      database.update(query, patch);
-    } else {
-      var index = databasev6.indexOf(_document);
-      databasev6[index] = {
-        ..._document,
-        ...patch
-      };
-      _document = databasev6[index];
-    }
+    var index = databasev6.indexOf(_document);
+    databasev6[index] = {
+      ..._document,
+      ...patch
+    };
+    _document = databasev6[index];
   }
 }
 

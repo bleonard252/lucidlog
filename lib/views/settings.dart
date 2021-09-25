@@ -129,8 +129,7 @@ class SettingsRoot extends StatelessWidget {
                     ],
                   ));
                   if (confirmation == false) return;
-                  if (appVersion == "5") await database.close();
-                  await File(platformStorageDir.absolute.path + (appVersion == "5" ? "/dreamjournal.db" : "/dreamjournal.json")).writeAsBytes(file.toUint8List());
+                  await File(platformStorageDir.absolute.path + "/dreamjournal.json").writeAsBytes(file.toUint8List());
                   await Get.dialog(AlertDialog(
                     title: Text("Immediate restart required"),
                     content: Text("The app will now restart to finish applying this change."),
@@ -158,8 +157,7 @@ class SettingsRoot extends StatelessWidget {
                   ],
                 ));
                 if (confirmation == false) return;
-                if (appVersion == "5") await database.close();
-                await File(platformStorageDir.absolute.path + (appVersion == "5" ? "/dreamjournal.db" : "/dreamjournal.json")).delete();
+                await File(platformStorageDir.absolute.path + "/dreamjournal.json").delete();
                 await Get.dialog(AlertDialog(
                   title: Text("Immediate restart required"),
                   content: Text("The app will now restart to finish applying this change."),

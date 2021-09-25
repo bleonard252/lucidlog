@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -122,8 +123,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         //   if (_result != PermissionStatus.granted) return runApp(MyApp(permissionDenied: true));
         // }
         //ignore: assignment_to_final
-        database = ObjectDB(FileSystemStorage(GetPlatform.isIOS ? (await getApplicationDocumentsDirectory()).absolute.path + "/dreamjournal.db"
-        : platformStorageDir.absolute.path + "/dreamjournal.db" /* platformStorageDir.absolute.path + "/dreamjournal.db" */));
+        databasev6 = jsonDecode(await databaseFile.readAsString()) as dynamic;
         Get.offAllNamed("/");
       },
     );

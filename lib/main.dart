@@ -27,8 +27,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 late final Directory platformStorageDir;
-@deprecated
-late final ObjectDB database;
 late final List databasev6;
 late final File databaseFile;
 late final SharedPreferences sharedPreferences;
@@ -80,9 +78,10 @@ void main() async {
     //sharedPreferences.setString("last-version", "4");
     //await Future.delayed(Duration(seconds: 3));
     //TODO: a bunch of stuff relating to the database
-    sharedPreferences.setString("last-version", "6 dev 1");
+    sharedPreferences.setString("last-version", "6");
   }
-  //sharedPreferences.setString("last-version", "5");
+  sharedPreferences.setString("last-version", "6");
+  databaseFile = File(platformStorageDir.absolute.path + "/dreamjournal.json");
   if (sharedPreferences.getBool("onboarding-completed") ?? false) {
     // platformStorageDir = GetPlatform.isIOS ? await getApplicationDocumentsDirectory()
     // : Directory(sharedPreferences.getString("storage-path") ?? "");
@@ -90,9 +89,8 @@ void main() async {
     //   var _result = await Permission.storage.request();
     //   if (_result != PermissionStatus.granted) return runApp(MyApp(permissionDenied: true));
     // }
-    database = ObjectDB(FileSystemStorage(GetPlatform.isIOS ? (await getApplicationDocumentsDirectory()).absolute.path + "/dreamjournal.db"
-    : platformStorageDir.absolute.path + "/dreamjournal.db")); //sharedPreferences.getString("storage-path")!));
-    databaseFile = File(platformStorageDir.absolute.path + "/dreamjournal.json");
+    // database = ObjectDB(FileSystemStorage(GetPlatform.isIOS ? (await getApplicationDocumentsDirectory()).absolute.path + "/dreamjournal.db"
+    // : platformStorageDir.absolute.path + "/dreamjournal.db")); //sharedPreferences.getString("storage-path")!));
     databasev6 = jsonDecode(await databaseFile.readAsString()) as dynamic; //sharedPreferences.getString("storage-path")!));
   }
   try {

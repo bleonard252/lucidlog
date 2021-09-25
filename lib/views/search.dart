@@ -67,40 +67,6 @@ class _SearchScreenState extends State<SearchScreen> {
   late TextEditingController controller;
 
   Future<void> reloadDreamList() async {
-    // //TODO: remove this section before v6!
-    // if (appVersion == "5") {
-    //   return database.find({}).then<void>((value) async {
-    //     List<DreamRecord> _list = [];
-    //     List<Future> _futures = [];
-    //     value.where((document) => document['title'].contains(controller.value.text) || document['body'].contains(controller.value.text))
-    //     .forEach((element) {
-    //       var _ = DreamRecord(id: element["_id"]);
-    //       _futures.add(_.loadDocument());
-    //       _list.add(_);
-    //     });
-    //     await Future.wait(_futures);
-    //     _list.sort((a, b) => a.timestamp.compareTo(b.timestamp));
-    //     list = _list.reversed.toList();
-    //     if (controller.value.text == "") list = [];
-    //     //dreamList = list;
-    //     setState(() {});
-    //   });
-    // } else {
-    //   List<DreamRecord> _list = [];
-    //   List<Future> _futures = [];
-    //   databasev6.where((document) => document['title'].contains(controller.value.text) || document['body'].contains(controller.value.text))
-    //   .forEach((element) {
-    //     var _ = DreamRecord(document: element);
-    //     _futures.add(_.loadDocument());
-    //     _list.add(_);
-    //   });
-    //   _list.sort((a, b) => a.timestamp.compareTo(b.timestamp));
-    //   list = _list.reversed.toList();
-    //   if (controller.value.text == "") list = [];
-    //   //dreamList = list;
-    //   setState(() {});
-    //   return Future.value();
-    // }
     if (widget.mode == SearchListMode.search) {
       final _list = dreamList.where((document) => 
         document.title.toLowerCase().contains(controller.value.text.toLowerCase())
@@ -119,25 +85,6 @@ class _SearchScreenState extends State<SearchScreen> {
     if (widget.mode == SearchListMode.search && controller.value.text == "") list = [];
     setState(() {});
   }
-
-  // Future<void> reloadDreamList() {
-  //   // TODO: actually perform a search
-  //   return database.find({}).then<void>((value) async {
-  //     List<DreamRecord> _list = [];
-  //     List<Future> _futures = [];
-  //     value.where((document) => document['title'].contains(controller.value.text) || document['body'].contains(controller.value.text))
-  //     .forEach((element) {
-  //       var _ = DreamRecord(id: element["_id"]);
-  //       _futures.add(_.loadDocument());
-  //       _list.add(_);
-  //     });
-  //     await Future.wait(_futures);
-  //     _list.sort((a, b) => a.timestamp.compareTo(b.timestamp));
-  //     list = _list.reversed.toList();
-  //     if (controller.value.text == "") list = [];
-  //     setState(() {});
-  //   });
-  // }
 
   @override
   void initState() {
