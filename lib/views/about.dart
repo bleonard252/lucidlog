@@ -36,14 +36,14 @@ class AboutScreen extends StatelessWidget {
           leading: Icon(Mdi.noteText),
           onTap: () => launch("https://ldr.1024256.xyz/appendix/app-policy"),
         ),
-        ListTile(
-          title: Text("Revert to database from v5"),
-          leading: Icon(Mdi.numeric5BoxOutline),
-          onTap: () async {
-            await sharedPreferences.setString("last-version", "5");
-            exit(0);
-          },
-        ),
+        // ListTile(
+        //   title: Text("Revert to database from v5"),
+        //   leading: Icon(Mdi.numeric5BoxOutline),
+        //   onTap: () async {
+        //     await sharedPreferences.setString("last-version", "5");
+        //     exit(0);
+        //   },
+        // ),
         ListTile(
           leading: Icon(Mdi.xml),
           title: Text("Source Code"),
