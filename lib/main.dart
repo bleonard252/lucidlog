@@ -80,17 +80,15 @@ void main() async {
   }
   sharedPreferences.setString("last-version", "6 beta 2");
   databaseFile = File(platformStorageDir.absolute.path + "/dreamjournal.json");
+  if (!await databaseFile.exists()) {
+    await databaseFile.create(recursive: true);
+    await databaseFile.writeAsString("[]");
+  }
   if (sharedPreferences.getBool("onboarding-completed") ?? false) {
-    // platformStorageDir = GetPlatform.isIOS ? await getApplicationDocumentsDirectory()
-    // : Directory(sharedPreferences.getString("storage-path") ?? "");
-    // if ((Platform.isAndroid || Platform.isIOS) && !(await Permission.storage.isGranted)) {
-    //   var _result = await Permission.storage.request();
-    //   if (_result != PermissionStatus.granted) return runApp(MyApp(permissionDenied: true));
-    // }
-    // database = ObjectDB(FileSystemStorage(GetPlatform.isIOS ? (await getApplicationDocumentsDirectory()).absolute.path + "/dreamjournal.db"
-    // : platformStorageDir.absolute.path + "/dreamjournal.db")); //sharedPreferences.getString("storage-path")!));
     database = jsonDecode(await databaseFile.readAsString()) as dynamic; //sharedPreferences.getString("storage-path")!));
   }
+  final _commentsFolder = Directory(platformStorageDir.absolute.path + "/lldj-comments/");
+  if (!await _commentsFolder.exists()) await _commentsFolder.create();
   try {
     notificationsPlugin = FlutterLocalNotificationsPlugin();
     canUseNotifications = (await notificationsPlugin!.initialize(InitializationSettings(

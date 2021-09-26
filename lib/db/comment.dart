@@ -10,4 +10,9 @@ class DreamCommentRecord {
     else if (timestamp is int) this.timestamp = DateTime.fromMillisecondsSinceEpoch(timestamp);
     else throw UnsupportedError("Type of timestamp not supported. Must be DateTime or int");
   }
+
+  Map toJSON() => {
+    "body": body,
+    "timestamp": timestamp.millisecondsSinceEpoch
+  };
 }
