@@ -153,6 +153,13 @@ class _DreamComment extends StatefulWidget {
 
 class __DreamCommentState extends State<_DreamComment> {
   List<DreamCommentRecord> _deletedComments = [];
+  final TextEditingController editController = TextEditingController();
+
+  @override
+  void initState() {
+    editController.text = widget.comment.body;
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext rootContext) {
@@ -169,7 +176,31 @@ class __DreamCommentState extends State<_DreamComment> {
               children: [
                 TextButton(
                   child: Container(width: 360, child: Text("Edit"), alignment: Alignment.center),
-                  onPressed: null//() => Get.back(),
+                  onPressed: () async {
+                    // --- perform the editing
+                    editController.text = widget.comment.body;
+                    final body = await Get.dialog<String?>(
+                      AlertDialog(
+                        title: Text("Update"),
+                        content: TextField(
+                          controller: editController,
+                          maxLines: null,
+                        ),
+                        actions: [
+                          TextButton(child: Text("CANCEL"), onPressed: () => Get.back<String?>(result: null)),
+                          TextButton(onPressed: () => Get.back<String?>(result: editController.value.text), child: Text("SAVE")),
+                        ],
+                      )
+                    );
+                    if (body == null) return Get.back();
+                    // --- perform the setting
+                    final record = _DreamCommentList.of(rootContext)?.list.indexWhere((element) => element.timestamp == widget.comment.timestamp);
+                    _DreamCommentList.of(rootContext)?.list[record!] 
+                    = DreamCommentRecord(body: body, timestamp: widget.comment.timestamp);
+                    await _DreamCommentList.of(rootContext)?.save();
+                    Get.back();
+                    setState(() => null);
+                  },
                 ),
                 TextButton(
                   child: Container(width: 360, child: Text("Delete", style: TextStyle(color: Colors.red)), alignment: Alignment.center),
@@ -195,7 +226,7 @@ class __DreamCommentState extends State<_DreamComment> {
           children: [
             Text(widget.comment.timestamp.format(_dateFormat ?? DateTimeFormats.commonLogFormat), style: Get.textTheme.caption),
             MarkdownBody(
-              data: widget.comment.body,
+              data: editController.value.text,
               selectable: true,
               softLineBreak: true,
             ),
