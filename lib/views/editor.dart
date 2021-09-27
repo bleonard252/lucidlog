@@ -242,7 +242,7 @@ class _DreamEditState extends State<DreamEdit> {
         if (widget.mode == DreamEditMode.create || widget.mode == DreamEditMode.tag) {
           database.add(newData);
         } else {
-          database[database.indexWhere((element) => element["_id"] == widget.dream!.id)] = newData;
+          database[database.indexWhere((element) => element["_id"] == widget.dream!.temporaryIdForThisBuildOnly)] = newData;
         }
         Get.offAllNamed("/");
       },

@@ -80,7 +80,7 @@ void main() async {
     //TODO: a bunch of stuff relating to the database
     sharedPreferences.setString("last-version", "6");
   }
-  sharedPreferences.setString("last-version", "6 beta 1");
+  sharedPreferences.setString("last-version", "6 beta 2");
   databaseFile = File(platformStorageDir.absolute.path + "/dreamjournal.json");
   if (sharedPreferences.getBool("onboarding-completed") ?? false) {
     // platformStorageDir = GetPlatform.isIOS ? await getApplicationDocumentsDirectory()

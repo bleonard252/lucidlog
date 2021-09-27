@@ -12,6 +12,8 @@ class DreamRecord {
   //final ObjectDB database;
   late Map _document;
 
+  String get temporaryIdForThisBuildOnly => _document["_id"];
+
   DreamRecord({this.id, Map? document}) :
   assert(id != null || document != null),
   this._document = document ?? {};
