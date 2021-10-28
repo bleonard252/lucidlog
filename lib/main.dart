@@ -78,7 +78,7 @@ void main() async {
     await migration;
     sharedPreferences.setString("last-version", "6");
   }
-  sharedPreferences.setString("last-version", "6 beta 3");
+  sharedPreferences.setString("last-version", "6 beta 4");
   databaseFile = File(platformStorageDir.absolute.path + "/dreamjournal.json");
   if (!await databaseFile.exists()) {
     await databaseFile.create(recursive: true);
