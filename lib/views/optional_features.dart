@@ -42,6 +42,19 @@ class OptionalFeaturesSettingsScreen extends StatelessWidget {
           subtitle: "Add comments to the details page for a dream.",
           settingKey: "opt-comments",
           defaultValue: false,
+        ),
+        Settings.RadioSettingsTile(
+          title: "Plotlines",
+          subtitle: "Have multiple distinct scenes for each of your dreams, with its own subtitle and body.",
+          settingKey: "opt-plotlines",
+          expandable: true,
+          initiallyExpanded: false,
+          values: {
+            "expandable": "Use expanding sections",
+            "slider": "Use a slider",
+            "none": "Off"
+          },
+          defaultKey: "none",
         )
       ]
     );
@@ -75,4 +88,17 @@ abstract class OptionalFeatures {
   /// existing results as it has to load an additional file to
   /// show them.
   static get comments => sharedPreferences.getBool("opt-comments") ?? false;
+  /// How to show the plotlines feature. A prompt will display on dreams that 
+  /// use this, telling you to enable plotlines, if you have this set to
+  /// [PlotlineTypes.NONE].
+  static PlotlineTypes get plotlines => 
+  sharedPreferences.getString("opt-plotlines") == "expandable" ? PlotlineTypes.EXPANDABLE
+  : sharedPreferences.getString("opt-plotlines") == "slider" ? PlotlineTypes.SLIDER
+  : PlotlineTypes.NONE;
+}
+
+enum PlotlineTypes {
+  EXPANDABLE,
+  SLIDER,
+  NONE
 }

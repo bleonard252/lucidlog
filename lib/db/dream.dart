@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
@@ -98,6 +99,8 @@ class DreamRecord {
   /// the Home and Search screens.
   bool get incomplete => _document["incomplete"] ?? false;
   set incomplete(bool value) => _update(_document, {"incomplete": value});
+
+  File get plotFile => File(platformStorageDir.absolute.path + "/lldj-plotlines/" + id);
 
   void _update(Map query, Map patch) {
     var index = database.indexOf(_document);

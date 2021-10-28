@@ -89,6 +89,8 @@ void main() async {
   }
   final _commentsFolder = Directory(platformStorageDir.absolute.path + "/lldj-comments/");
   if (!await _commentsFolder.exists()) await _commentsFolder.create();
+  final _plotlinesFolder = Directory(platformStorageDir.absolute.path + "/lldj-plotlines/");
+  if (!await _plotlinesFolder.exists()) await _plotlinesFolder.create();
   try {
     notificationsPlugin = FlutterLocalNotificationsPlugin();
     canUseNotifications = (await notificationsPlugin!.initialize(InitializationSettings(

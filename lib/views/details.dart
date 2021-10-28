@@ -7,9 +7,11 @@ import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:get/get.dart';
 import 'package:journal/db/comment.dart';
 import 'package:journal/db/dream.dart';
+import 'package:journal/db/plotline.dart';
 import 'package:journal/main.dart';
 import 'package:journal/views/comments.dart';
 import 'package:journal/views/optional_features.dart';
+import 'package:journal/views/plotline.dart';
 import 'package:journal/views/search.dart';
 import 'package:journal/widgets/gradienticon.dart';
 import 'package:mdi/mdi.dart';
@@ -116,7 +118,7 @@ class DreamDetails extends StatelessWidget {
             ],),
             if (dream.body.isNotEmpty) Container(
               padding: const EdgeInsets.symmetric(vertical: 4),
-              width: 999999999,
+              width: double.infinity,
               child: Material(
                 elevation: 2,
                 type: MaterialType.card,
@@ -135,13 +137,22 @@ class DreamDetails extends StatelessWidget {
                       selectable: true,
                       softLineBreak: true,
                     )
+                  ),
+                  FutureBuilder(
+                    future: dream.plotFile.exists(),
+                    builder: (ctx, snap) => snap.hasData && snap.data == true ? Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: PlotlineWidget(dream: dream)
+                      ),
+                    ) : Container()
                   )
                 ])
               )
             ),
             if (dream.tags.isNotEmpty) Container(
               padding: const EdgeInsets.symmetric(vertical: 4),
-              width: 999999999,
+              width: double.infinity,
               child: Material(
                 elevation: 2,
                 type: MaterialType.card,
@@ -173,7 +184,7 @@ class DreamDetails extends StatelessWidget {
             ),
             if (dream.methods.isNotEmpty) Container(
               padding: const EdgeInsets.symmetric(vertical: 4),
-              width: 999999999,
+              width: double.infinity,
               child: Material(
                 elevation: 2,
                 type: MaterialType.card,
