@@ -17,7 +17,6 @@ import 'package:path_provider/path_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class DreamListScreen extends StatefulWidget {
-
   DreamListScreen({
     Key? key
   }) : super(key: key);
@@ -61,9 +60,10 @@ class _DreamListScreenState extends State<DreamListScreen> {
         actions: [
           IconButton(
             icon: Icon(Icons.settings),
-            onPressed: () {
-              Get.toNamed("/settings");
-              setState(() {});
+            onPressed: () async {
+              await Get.toNamed("/settings");
+              setState(() => isListInitialized = false);
+              await reloadDreamList();
             },
           )
         ],

@@ -9,11 +9,11 @@ import 'package:objectdb/objectdb.dart';
 import 'package:objectdb/src/objectdb_storage_filesystem.dart';
 import 'package:path_provider/path_provider.dart';
 
-Future<void> databaseMigrationVersion6() async {
+Future<void> databaseMigrationVersion6({String? v5FPath}) async {
   final databaseDirectory = Platform.isIOS ? (await getApplicationDocumentsDirectory()).absolute.path
     : platformStorageDir.absolute.path;
-  final v5Database = ObjectDB(FileSystemStorage(databaseDirectory + "/dreamjournal.db"));
-  final v5DatabaseFile = File(databaseDirectory + "/dreamjournal.db");
+  final v5Database = ObjectDB(FileSystemStorage(v5FPath ?? (databaseDirectory + "/dreamjournal.db")));
+  final v5DatabaseFile = File(v5FPath ?? (databaseDirectory + "/dreamjournal.db"));
   final v6DatabaseFile = File(databaseDirectory + "/dreamjournal.json");
   final _v6DbFileExists = await v6DatabaseFile.exists();
   if (_v6DbFileExists) {
