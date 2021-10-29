@@ -113,6 +113,10 @@ class MyApp extends StatelessWidget {
       cardColor: cardColor,
       primaryColor: Colors.purple,
       accentColor: Colors.amber,
+      colorScheme: ColorScheme.dark(
+        primary: Colors.purple,
+        secondary: Colors.amber,
+      ),
       floatingActionButtonTheme: FloatingActionButtonThemeData(
         backgroundColor: Colors.amber
       ),

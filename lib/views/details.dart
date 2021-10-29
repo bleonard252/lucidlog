@@ -124,7 +124,7 @@ class DreamDetails extends StatelessWidget {
                 type: MaterialType.card,
                 color: Get.theme.cardColor,
                 borderRadius: BorderRadius.all(Radius.circular(0)),
-                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children:[
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children:[
                   Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: Text("Summary", 
@@ -140,7 +140,8 @@ class DreamDetails extends StatelessWidget {
                   ),
                   FutureBuilder(
                     future: dream.plotFile.exists(),
-                    builder: (ctx, snap) => snap.hasData && snap.data == true ? Expanded(
+                    builder: (ctx, snap) => snap.hasData && snap.data == true ? Flexible(
+                      fit: FlexFit.loose,
                       child: Padding(
                         padding: const EdgeInsets.all(8.0),
                         child: PlotlineWidget(dream: dream)
