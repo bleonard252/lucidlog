@@ -127,7 +127,9 @@ class SettingsRoot extends StatelessWidget {
                   TarEntry(TarHeader(name: "dreamjournal.json"), databaseFile.openRead()),
                   // Add the PRs file here at some point
                   await for (var file in Directory(platformStorageDir.absolute.path + "/lldj-comments/").list())
-                    if (file is File) TarEntry(TarHeader(name: "lldj-comments/"+file.uri.pathSegments.last), file.openRead())
+                    if (file is File) TarEntry(TarHeader(name: "lldj-comments/"+file.uri.pathSegments.last), file.openRead()),
+                  await for (var file in Directory(platformStorageDir.absolute.path + "/lldj-plotlines/").list())
+                    if (file is File) TarEntry(TarHeader(name: "lldj-plotlines/"+file.uri.pathSegments.last), file.openRead())
                 ]).transform(tarWriter).transform(gzip.encoder);
                 if (GetPlatform.isAndroid) {
                   await tarEntries.pipe(outfile.openWrite());
@@ -212,6 +214,12 @@ class SettingsRoot extends StatelessWidget {
                         database.addAll(_dreams.toList());
                         await databaseFile.writeAsString(jsonEncode(_dreams), flush: true);
                         //print(_dreams);
+                      } else if (entry.name.startsWith("lldj-plotlines/")) {
+                        // Plotlines information always overrides, as these are simply
+                        // an addition to the entry itself.
+                        // This is unlike comments, which may be individually edited
+                        // and deleted.
+                        await File(platformStorageDir.absolute.path + "/" + entry.name).openWrite().addStream(entry.contents);
                       } else if (entry.name.startsWith("lldj-comments/")) {
                         final _commentFile = await File(platformStorageDir.absolute.path + "/" + entry.name).readAsString();
                         late final List _importedComments;
