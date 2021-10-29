@@ -1,19 +1,12 @@
-import 'dart:convert';
-import 'dart:io';
-import 'dart:typed_data';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:get/get.dart';
-import 'package:journal/db/comment.dart';
 import 'package:journal/db/dream.dart';
-import 'package:journal/db/plotline.dart';
 import 'package:journal/main.dart';
 import 'package:journal/views/comments.dart';
 import 'package:journal/views/optional_features.dart';
 import 'package:journal/views/plotline.dart';
 import 'package:journal/views/search.dart';
-import 'package:journal/widgets/gradienticon.dart';
 import 'package:mdi/mdi.dart';
 import 'package:date_time_format/date_time_format.dart';
 import 'package:share_plus/share_plus.dart';

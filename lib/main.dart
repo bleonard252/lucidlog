@@ -19,12 +19,8 @@ import 'package:journal/views/search.dart';
 import 'package:journal/views/settings.dart';
 import 'package:journal/widgets/preflight.dart';
 import 'package:mdi/mdi.dart';
-import 'package:objectdb/objectdb.dart';
-// ignore: implementation_imports
-import 'package:objectdb/src/objectdb_storage_filesystem.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:permission_handler/permission_handler.dart';
 
 late final Directory platformStorageDir;
 late final File databaseFile;
@@ -112,7 +108,7 @@ class MyApp extends StatelessWidget {
       scaffoldBackgroundColor: surfaceColor,
       cardColor: cardColor,
       primaryColor: Colors.purple,
-      accentColor: Colors.amber,
+      //accentColor: Colors.amber,
       colorScheme: ColorScheme.dark(
         primary: Colors.purple,
         secondary: Colors.amber,

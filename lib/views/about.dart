@@ -1,10 +1,7 @@
-import 'dart:io';
-
 import "package:flutter/material.dart";
 import 'package:get/get.dart';
 import 'package:journal/main.dart';
 import 'package:mdi/mdi.dart';
-import 'package:simple_icons/simple_icons.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class AboutScreen extends StatelessWidget {

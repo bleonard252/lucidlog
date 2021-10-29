@@ -81,6 +81,7 @@ class _DetailsCommentsSectionState extends State<DetailsCommentsSection> {
   }
 }
 
+// ignore: must_be_immutable
 class _DreamCommentList extends InheritedWidget {
   List<DreamCommentRecord> list;
   final String id;

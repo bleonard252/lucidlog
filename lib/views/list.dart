@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:math';
 import 'dart:ui';
 
 import 'package:date_time_format/date_time_format.dart';
@@ -12,8 +11,6 @@ import 'package:journal/widgets/empty_state.dart';
 import 'package:journal/main.dart';
 import 'package:journal/widgets/gradienticon.dart';
 import 'package:mdi/mdi.dart';
-import 'package:objectdb/objectdb.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class DreamListScreen extends StatefulWidget {
@@ -97,7 +94,7 @@ class _DreamListScreenState extends State<DreamListScreen> {
                 child: IconButton(
                   icon: Icon(Icons.search),
                   onPressed: () => Get.toNamed("/search"),
-                  color: Get.theme.accentColor,
+                  color: Get.theme.colorScheme.secondary,
                 ),
               ),
             ),
@@ -110,7 +107,7 @@ class _DreamListScreenState extends State<DreamListScreen> {
                   child: IconButton(
                     icon: Icon(Icons.map),
                     onPressed: () async => await launch("https://ldr.1024256.xyz"),
-                    color: Get.theme.accentColor,
+                    color: Get.theme.colorScheme.secondary,
                   ),
                 ),
               ) : Container(width: 0, height: 0)
@@ -130,7 +127,7 @@ class _DreamListScreenState extends State<DreamListScreen> {
                 icon: Icon(Icons.tag),
                 onPressed: () => Get.toNamed("/tag"),
                 //style: ButtonStyle(foregroundColor: _Gold(), padding: _Padding(8)),
-                color: Get.theme.accentColor
+                color: Get.theme.colorScheme.secondary
               ),
             ),
             TextButton(
@@ -219,7 +216,7 @@ class DreamEntry extends StatelessWidget {
 class _Gold extends MaterialStateColor {
   static Color _defaultColor = Colors.amber;
   static Color _pressedColor = Colors.amber.shade700;
-  static Color _hoverColor = Colors.amber.withAlpha(48);
+  //static Color _hoverColor = Colors.amber.withAlpha(48);
 
   const _Gold() : super(0xffab47bc);
 

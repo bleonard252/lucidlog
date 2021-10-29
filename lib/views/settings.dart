@@ -1,8 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
-import 'dart:typed_data';
 
-import 'package:archive/archive_io.dart';
 import 'package:date_time_format/date_time_format.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:external_path/external_path.dart';
@@ -10,17 +8,11 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:journal/main.dart';
 import 'package:journal/migrations/databasev6.dart';
-import 'package:journal/notifications.dart';
-import 'package:journal/views/list.dart';
 import 'package:journal/views/methods.dart';
 import 'package:journal/views/optional_features.dart';
 import 'package:mdi/mdi.dart';
-import 'package:objectdb/objectdb.dart';
-import 'package:objectdb/src/objectdb_storage_filesystem.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences_settings/shared_preferences_settings.dart' as Settings;
 import 'package:tar/tar.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 enum _ExportType {
   /// a `.db` file from Version 5 and prior

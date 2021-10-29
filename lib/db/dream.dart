@@ -1,12 +1,10 @@
 import 'dart:io';
-import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:journal/main.dart';
 import 'package:journal/views/optional_features.dart';
 import 'package:mdi/mdi.dart';
-import 'package:objectdb/objectdb.dart';
 
 class DreamRecord {
   final String? _id;

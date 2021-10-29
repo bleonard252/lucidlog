@@ -6,7 +6,6 @@ import 'package:get/get.dart';
 import 'package:journal/db/dream.dart';
 import 'package:journal/db/plotline.dart';
 import 'package:journal/views/optional_features.dart';
-import 'package:mdi/mdi.dart';
 
 class PlotlineWidget extends StatefulWidget {
   final DreamRecord dream;

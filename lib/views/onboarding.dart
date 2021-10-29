@@ -1,18 +1,9 @@
 import 'dart:convert';
-import 'dart:io';
-import 'dart:typed_data';
-
 import 'package:date_time_format/date_time_format.dart';
-import 'package:file_picker/file_picker.dart';
 import "package:flutter/material.dart";
 import 'package:get/get.dart';
 import 'package:introduction_screen/introduction_screen.dart';
 import 'package:journal/main.dart';
-import 'package:objectdb/objectdb.dart';
-// ignore: implementation_imports
-import 'package:objectdb/src/objectdb_storage_filesystem.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences_settings/shared_preferences_settings.dart' as Settings;
 
 class OnboardingScreen extends StatefulWidget {
@@ -28,8 +19,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   Widget build(BuildContext context) {
     return IntroductionScreen(
       globalBackgroundColor: Get.theme.canvasColor,
-      dotsDecorator: DotsDecorator(activeColor: Get.theme.accentColor),
-      color: Get.theme.accentColor,
+      dotsDecorator: DotsDecorator(activeColor: Get.theme.colorScheme.secondary),
+      color: Get.theme.colorScheme.secondary,
       pages: [
         PageViewModel(
           title: "",
