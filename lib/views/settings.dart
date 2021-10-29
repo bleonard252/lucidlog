@@ -104,7 +104,7 @@ class SettingsRoot extends StatelessWidget {
               leading: Icon(Icons.sd_storage)
             ),
             Divider(height: 0.0),
-            if (/* GetPlatform.isAndroid || */ GetPlatform.isDesktop) ...[ListTile(
+            if (GetPlatform.isAndroid || GetPlatform.isDesktop) ...[ListTile(
               leading: Icon(Icons.save),
               title: Text("Export"),
               subtitle: Text("Save a copy of your dream journal's database."),
