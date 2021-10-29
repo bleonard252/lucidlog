@@ -1,19 +1,9 @@
 import 'dart:convert';
-import 'dart:io';
-import 'dart:typed_data';
-
 import 'package:date_time_format/date_time_format.dart';
-import 'package:file_picker/file_picker.dart';
-import 'package:file_picker_cross/file_picker_cross.dart';
 import "package:flutter/material.dart";
 import 'package:get/get.dart';
 import 'package:introduction_screen/introduction_screen.dart';
 import 'package:journal/main.dart';
-import 'package:objectdb/objectdb.dart';
-// ignore: implementation_imports
-import 'package:objectdb/src/objectdb_storage_filesystem.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences_settings/shared_preferences_settings.dart' as Settings;
 
 class OnboardingScreen extends StatefulWidget {
@@ -29,8 +19,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   Widget build(BuildContext context) {
     return IntroductionScreen(
       globalBackgroundColor: Get.theme.canvasColor,
-      dotsDecorator: DotsDecorator(activeColor: Get.theme.accentColor),
-      color: Get.theme.accentColor,
+      dotsDecorator: DotsDecorator(activeColor: Get.theme.colorScheme.secondary),
+      color: Get.theme.colorScheme.secondary,
       pages: [
         PageViewModel(
           title: "",
@@ -61,40 +51,40 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             ),
           ),
         ),
-        if (GetPlatform.isDesktop) PageViewModel(
-          title: "Set storage location",
-          bodyWidget: Center(
-            child: Column(
-              children: [
-                Text("The file will be called dreamjournal.db\nand it will be saved in the\nfolder you select."),
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: ElevatedButton(
-                    onPressed: () async {
-                      late final String? result;
-                      try {
-                        result = (await FilePickerCross(File.fromUri(Uri.parse(sharedPreferences.getString("storage-path") ?? "")).readAsBytesSync()).exportToStorage(fileName: "dreamjournal.db"));
-                      } on FileSystemException {
-                        result = (await FilePickerCross(Uint8List(0)).exportToStorage(fileName: "dreamjournal.db"));
-                      } on FormatException {
-                        result = (await FilePickerCross(Uint8List(0)).exportToStorage(fileName: "dreamjournal.db"));
-                      }
-                      //: (await FilePicker.platform.getDirectoryPath()) ?? "/" + "/dreamjournal.db";
-                      if (result == null) return;
-                      final exists = await Directory(result).exists();
-                      if (!exists) return;
-                      if (!(await Directory(result).stat()).modeString().replaceAll(RegExp('\(.*?\)'), "").startsWith("rw")) return;
-                      if (result == "/" || result == "//dreamjournal.db") return;
-                      await sharedPreferences.setString("storage-path", result);
-                      setState(() => isNextEnabled = true);
-                    },
-                    child: Text("Browse for directory")
-                  ),
-                ),
-              ],
-            ),
-          )
-        ),
+        // if (GetPlatform.isDesktop) PageViewModel(
+        //   title: "Set storage location",
+        //   bodyWidget: Center(
+        //     child: Column(
+        //       children: [
+        //         Text("The file will be called dreamjournal.db\nand it will be saved in the\nfolder you select."),
+        //         Padding(
+        //           padding: const EdgeInsets.all(8.0),
+        //           child: ElevatedButton(
+        //             onPressed: () async {
+        //               late final String? result;
+        //               try {
+        //                 result = (await FilePickerCross(File.fromUri(Uri.parse(sharedPreferences.getString("storage-path") ?? "")).readAsBytesSync()).exportToStorage(fileName: "dreamjournal.db"));
+        //               } on FileSystemException {
+        //                 result = (await FilePickerCross(Uint8List(0)).exportToStorage(fileName: "dreamjournal.db"));
+        //               } on FormatException {
+        //                 result = (await FilePickerCross(Uint8List(0)).exportToStorage(fileName: "dreamjournal.db"));
+        //               }
+        //               //: (await FilePicker.platform.getDirectoryPath()) ?? "/" + "/dreamjournal.db";
+        //               if (result == null) return;
+        //               final exists = await Directory(result).exists();
+        //               if (!exists) return;
+        //               if (!(await Directory(result).stat()).modeString().replaceAll(RegExp('\(.*?\)'), "").startsWith("rw")) return;
+        //               if (result == "/" || result == "//dreamjournal.db") return;
+        //               await sharedPreferences.setString("storage-path", result);
+        //               setState(() => isNextEnabled = true);
+        //             },
+        //             child: Text("Browse for directory")
+        //           ),
+        //         ),
+        //       ],
+        //     ),
+        //   )
+        // ),
         PageViewModel(
           title: "",
           bodyWidget: Center(

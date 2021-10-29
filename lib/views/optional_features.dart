@@ -1,6 +1,5 @@
 import "package:flutter/material.dart";
 import 'package:journal/main.dart';
-import 'package:journal/views/methods.dart';
 import 'package:shared_preferences_settings/shared_preferences_settings.dart' as Settings;
 
 class OptionalFeaturesSettingsScreen extends StatelessWidget {
@@ -28,7 +27,8 @@ class OptionalFeaturesSettingsScreen extends StatelessWidget {
           title: "Counters",
           settingKey: "opt-counters",
           defaultValue: false,
-          subtitle: "Add counters to the dream detail screen. This will count your dreams, lucids, and in coordination with WILD Distinction, WILDs.",
+          subtitle: "Add counters to the dream detail screen. This will count your dreams, lucids, and in coordination with WILD Distinction, WILDs."
+          " Also adds the Statistics screen, accessible from Search.",
         ),
         Settings.SwitchSettingsTile(
           title: "Group by Night",
@@ -36,24 +36,25 @@ class OptionalFeaturesSettingsScreen extends StatelessWidget {
           defaultValue: false,
           subtitle: "Adds a header to the most recent dream of each night, showing what night you had some dreams on. This is useful when you have high recall.",
         ),
-        // Settings.SimpleSettingsTile(
-        //   title: "Comments",
-        //   screen: Settings.SettingsToggleScreen(
-        //     title: "Comments",
-        //     settingKey: "opt-comments",
-        //     defaultValue: false,
-        //     children: [
-        //       Padding(
-        //         padding: EdgeInsets.all(8.0),
-        //         child: Text("Comments can be used for things like additional, minor details you remember later,"
-        //         " interpretations, explanations of dream contents (i.e. where a name comes from), or whatever you would like to use it for.\n"
-        //         "Comments are time-stamped and accept Markdown, in addition to the quick search syntax <#YOUR SEARCH HERE> which provides"
-        //         " a link to allow you to quickly search, i.e. to find a dream that mentions a specific character, using the search terms provided."),
-        //       )
-        //     ],
-        //   ),
-        //   subtitle: "Add comments to the details page of a dream."
-        // )
+        Settings.SwitchSettingsTile(
+          title: "Comments",
+          subtitle: "Add comments to the details page for a dream.",
+          settingKey: "opt-comments",
+          defaultValue: false,
+        ),
+        Settings.RadioSettingsTile(
+          title: "Plotlines",
+          subtitle: "Have multiple distinct scenes for each of your dreams, with its own subtitle and body.",
+          settingKey: "opt-plotlines",
+          expandable: true,
+          initiallyExpanded: false,
+          values: {
+            "expandable": "Use expanding sections",
+            "slider": "Use a slider",
+            "none": "Off"
+          },
+          defaultKey: "none",
+        )
       ]
     );
   }
@@ -81,4 +82,22 @@ abstract class OptionalFeatures {
   static get counters => sharedPreferences.getBool("opt-counters") ?? false;
   /// Whether to group dreams by night in the main list.
   static get nightly => sharedPreferences.getBool("opt-nightly") ?? false;
+  /// Whether to show comments in the dream creation view.
+  /// Unlike other optional features, this one actually hides
+  /// existing results as it has to load an additional file to
+  /// show them.
+  static get comments => sharedPreferences.getBool("opt-comments") ?? false;
+  /// How to show the plotlines feature. A prompt will display on dreams that 
+  /// use this, telling you to enable plotlines, if you have this set to
+  /// [PlotlineTypes.NONE].
+  static PlotlineTypes get plotlines => 
+  sharedPreferences.getString("opt-plotlines") == "expandable" ? PlotlineTypes.EXPANDABLE
+  : sharedPreferences.getString("opt-plotlines") == "slider" ? PlotlineTypes.SLIDER
+  : PlotlineTypes.NONE;
+}
+
+enum PlotlineTypes {
+  EXPANDABLE,
+  SLIDER,
+  NONE
 }

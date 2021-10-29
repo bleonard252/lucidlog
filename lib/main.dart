@@ -19,12 +19,8 @@ import 'package:journal/views/search.dart';
 import 'package:journal/views/settings.dart';
 import 'package:journal/widgets/preflight.dart';
 import 'package:mdi/mdi.dart';
-import 'package:objectdb/objectdb.dart';
-// ignore: implementation_imports
-import 'package:objectdb/src/objectdb_storage_filesystem.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:permission_handler/permission_handler.dart';
 
 late final Directory platformStorageDir;
 late final File databaseFile;
@@ -67,6 +63,7 @@ void main() async {
   }
   if (appVersion == "5") {
     print("running database migration: 5 -> 6");
+    final migration = databaseMigrationVersion6();
     runApp(PreflightScreen(
       child: EmptyState(
         icon: Icon(Mdi.uploadMultiple),
@@ -74,25 +71,22 @@ void main() async {
         preflight: true,
       )
     ));
-    await databaseMigrationVersion6();
-    //sharedPreferences.setString("last-version", "4");
-    //await Future.delayed(Duration(seconds: 3));
-    //TODO: a bunch of stuff relating to the database
+    await migration;
     sharedPreferences.setString("last-version", "6");
   }
-  sharedPreferences.setString("last-version", "6 beta 1");
+  //sharedPreferences.setString("last-version", "6");
   databaseFile = File(platformStorageDir.absolute.path + "/dreamjournal.json");
+  if (!await databaseFile.exists()) {
+    await databaseFile.create(recursive: true);
+    await databaseFile.writeAsString("[]");
+  }
   if (sharedPreferences.getBool("onboarding-completed") ?? false) {
-    // platformStorageDir = GetPlatform.isIOS ? await getApplicationDocumentsDirectory()
-    // : Directory(sharedPreferences.getString("storage-path") ?? "");
-    // if ((Platform.isAndroid || Platform.isIOS) && !(await Permission.storage.isGranted)) {
-    //   var _result = await Permission.storage.request();
-    //   if (_result != PermissionStatus.granted) return runApp(MyApp(permissionDenied: true));
-    // }
-    // database = ObjectDB(FileSystemStorage(GetPlatform.isIOS ? (await getApplicationDocumentsDirectory()).absolute.path + "/dreamjournal.db"
-    // : platformStorageDir.absolute.path + "/dreamjournal.db")); //sharedPreferences.getString("storage-path")!));
     database = jsonDecode(await databaseFile.readAsString()) as dynamic; //sharedPreferences.getString("storage-path")!));
   }
+  final _commentsFolder = Directory(platformStorageDir.absolute.path + "/lldj-comments/");
+  if (!await _commentsFolder.exists()) await _commentsFolder.create();
+  final _plotlinesFolder = Directory(platformStorageDir.absolute.path + "/lldj-plotlines/");
+  if (!await _plotlinesFolder.exists()) await _plotlinesFolder.create();
   try {
     notificationsPlugin = FlutterLocalNotificationsPlugin();
     canUseNotifications = (await notificationsPlugin!.initialize(InitializationSettings(
@@ -114,7 +108,11 @@ class MyApp extends StatelessWidget {
       scaffoldBackgroundColor: surfaceColor,
       cardColor: cardColor,
       primaryColor: Colors.purple,
-      accentColor: Colors.amber,
+      //accentColor: Colors.amber,
+      colorScheme: ColorScheme.dark(
+        primary: Colors.purple,
+        secondary: Colors.amber,
+      ),
       floatingActionButtonTheme: FloatingActionButtonThemeData(
         backgroundColor: Colors.amber
       ),

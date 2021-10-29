@@ -6,14 +6,15 @@ import 'package:journal/main.dart';
 import 'package:journal/widgets/empty_state.dart';
 import 'package:journal/widgets/preflight.dart';
 import 'package:objectdb/objectdb.dart';
+// ignore: implementation_imports
 import 'package:objectdb/src/objectdb_storage_filesystem.dart';
 import 'package:path_provider/path_provider.dart';
 
-Future<void> databaseMigrationVersion6() async {
+Future<void> databaseMigrationVersion6({String? v5FPath}) async {
   final databaseDirectory = Platform.isIOS ? (await getApplicationDocumentsDirectory()).absolute.path
     : platformStorageDir.absolute.path;
-  final v5Database = ObjectDB(FileSystemStorage(databaseDirectory + "/dreamjournal.db"));
-  final v5DatabaseFile = File(databaseDirectory + "/dreamjournal.db");
+  final v5Database = ObjectDB(FileSystemStorage(v5FPath ?? (databaseDirectory + "/dreamjournal.db")));
+  final v5DatabaseFile = File(v5FPath ?? (databaseDirectory + "/dreamjournal.db"));
   final v6DatabaseFile = File(databaseDirectory + "/dreamjournal.json");
   final _v6DbFileExists = await v6DatabaseFile.exists();
   if (_v6DbFileExists) {
@@ -27,6 +28,6 @@ Future<void> databaseMigrationVersion6() async {
   final _v5DatabaseList = await v5Database.find({});
   await v6DatabaseFile.writeAsString(jsonEncode(_v5DatabaseList));
   v5Database.close();
-  //await v5DatabaseFile.delete();
+  await v5DatabaseFile.delete();
   return;
 }

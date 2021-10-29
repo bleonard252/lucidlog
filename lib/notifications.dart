@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart' show Colors;
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:journal/main.dart';

@@ -1,4 +1,6 @@
-import 'package:date_time_format/date_time_format.dart';
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:introduction_screen/introduction_screen.dart';
@@ -30,7 +32,9 @@ class _DreamEditState extends State<DreamEdit> {
   bool isDreamForgotten = false;
   List<String> tags = [];
   List<String> methods = [];
+  List<Map<String, dynamic>> plot = [];
   DateTime dateValue = DateTime.now();
+  late bool isPlotlinesEnabled;
 
   @override
   void initState() {
@@ -43,6 +47,10 @@ class _DreamEditState extends State<DreamEdit> {
     dateValue = widget.dream?.timestamp ?? dateValue;
     tags = widget.dream?.tags ?? [];
     methods = widget.dream?.methods ?? [];
+    if (widget.dream?.id != null) File(platformStorageDir.absolute.path + "/lldj-plotlines/" + widget.dream!.id).readAsString().then((value) {
+      plot = jsonDecode(value);
+    });
+    isPlotlinesEnabled = plot.isNotEmpty || widget.mode == DreamEditMode.edit;
     super.initState();
   }
 
@@ -153,14 +161,25 @@ class _DreamEditState extends State<DreamEdit> {
                   controller: summaryController, 
                   decoration: InputDecoration(
                     alignLabelWithHint: true,
-                    labelText: "Summary, plot, or body",
+                    labelText: "Summary",
                     hintText: "Write more about a dream!"
                   ),
                   keyboardAppearance: Brightness.dark,
                   keyboardType: TextInputType.multiline,
                   minLines: 5,
                   maxLines: null,
-                )
+                ),
+                if (OptionalFeatures.plotlines != PlotlineTypes.NONE && !isPlotlinesEnabled) Row(children: [
+                  Expanded(child: Container()),
+                  TextButton(
+                    onPressed: () {setState(() {isPlotlinesEnabled = true;});},
+                    //icon: Icon(Icons.delete_outline),
+                    child: Text("Enable Plotlines"),
+                    style: ButtonStyle(
+                      padding: MaterialStateProperty.all(EdgeInsets.all(24.0))
+                    ),
+                  ),
+                ]),
               ],
             ),
           )
@@ -216,6 +235,59 @@ class _DreamEditState extends State<DreamEdit> {
             ],
           )
         ),
+        if (OptionalFeatures.plotlines != PlotlineTypes.NONE && isPlotlinesEnabled) PageViewModel(
+          title: "Plot points",
+          bodyWidget: ReorderableListView(shrinkWrap: true, children: [
+            for (var event in plot) Builder(
+              key: ValueKey(event),
+              builder: (context) {
+                final _titleController = event["tc"] ?? TextEditingController(text: event["subtitle"] ?? "");
+                plot[plot.indexOf(event)]["tc"] = _titleController;
+                final _bodyController = event["bc"] ?? TextEditingController(text: event["body"] ?? "No body! Whoops");
+                plot[plot.indexOf(event)]["bc"] = _bodyController;
+                return Column(children: [
+                  TextField(
+                    controller: _titleController,
+                    onChanged: (newValue) {
+                      final index = plot.indexOf(event);
+                      plot[index]["subtitle"] = newValue;
+                      setState(() {});
+                    },
+                    decoration: InputDecoration(
+                      labelText: "Subtitle",
+                      hintText: "Subtitles help you identify scenes or events.",
+                    ),
+                    keyboardAppearance: Brightness.dark,
+                    keyboardType: TextInputType.text,
+                  ),
+                  TextField(
+                    controller: _bodyController,
+                    onChanged: (newValue) {
+                      final index = plot.indexOf(event);
+                      plot[index]["body"] = newValue;
+                      setState(() {});
+                    },
+                    decoration: InputDecoration(
+                      alignLabelWithHint: true,
+                      labelText: "Summary",
+                      hintText: "Write more about a scene or event!"
+                    ),
+                    keyboardAppearance: Brightness.dark,
+                    keyboardType: TextInputType.multiline,
+                    minLines: 5,
+                    maxLines: null,
+                  ),
+                  Divider()
+                ]);
+              }
+            )
+          ], onReorder: (oldPos, newPos) {
+            final oldItem = plot.removeAt(oldPos);
+            plot.insert(newPos, oldItem);
+            setState(() {});
+          }),
+          footer: TextButton(onPressed: () => setState(() => plot.add({"body": "New body text"})), child: Text("New plot point"))
+        ),
       ],
       next: Text("Next"),
       done: Text(widget.mode == DreamEditMode.create || widget.mode == DreamEditMode.tag ? "Create" 
@@ -239,6 +311,16 @@ class _DreamEditState extends State<DreamEdit> {
           "methods": isDreamLucid ? methods : [],
           "incomplete": (widget.mode == DreamEditMode.tag)
         };
+        final plotFile = File(platformStorageDir.absolute.path + "/lldj-plotlines/" + (newData["_id"] as String) + ".json");
+        if (OptionalFeatures.plotlines != PlotlineTypes.NONE && isPlotlinesEnabled) {
+          if (plot != []) await plotFile.writeAsString(jsonEncode(plot.map<Map<String, String?>>((e) => {
+            "body": e["body"],
+            "subtitle": e["subtitle"]
+          }).toList()));
+          else if (plot == [] && await plotFile.exists()) {
+            plotFile.delete();
+          }
+        }
         if (widget.mode == DreamEditMode.create || widget.mode == DreamEditMode.tag) {
           database.add(newData);
         } else {

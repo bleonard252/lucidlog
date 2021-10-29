@@ -1,6 +1,3 @@
-import 'dart:math';
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:journal/db/dream.dart';
@@ -10,8 +7,6 @@ import 'package:journal/widgets/empty_state.dart';
 import 'package:journal/main.dart';
 import 'package:journal/widgets/gradienticon.dart';
 import 'package:mdi/mdi.dart';
-import 'package:objectdb/objectdb.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:string_similarity/string_similarity.dart';
 
 import 'list.dart' show DreamEntry;
@@ -246,24 +241,23 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 }
 
-class _Gold extends MaterialStateColor {
-  static Color _defaultColor = Colors.amber;
-  static Color _pressedColor = Colors.amber.shade700;
-  static Color _hoverColor = Colors.amber.withAlpha(48);
+// class _Gold extends MaterialStateColor {
+//   static Color _defaultColor = Colors.amber;
+//   static Color _pressedColor = Colors.amber.shade700;
+//   static Color _hoverColor = Colors.amber.withAlpha(48);
 
-  const _Gold() : super(0xffab47bc);
+//   const _Gold() : super(0xffab47bc);
 
-  @override
-  Color resolve(Set<MaterialState> states) {
-    if (states.contains(MaterialState.pressed)) {
-      return _pressedColor;
-    }
-    return _defaultColor;
-  }
-}
+//   @override
+//   Color resolve(Set<MaterialState> states) {
+//     if (states.contains(MaterialState.pressed)) {
+//       return _pressedColor;
+//     }
+//     return _defaultColor;
+//   }
+// }
 
 extension ListSubtile on ListTile {
-  @override
   Widget subtile() {
     return ListTile(
       leading: Container(width: 24, height: 0),

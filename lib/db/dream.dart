@@ -1,25 +1,27 @@
-import 'dart:ui';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:journal/main.dart';
 import 'package:journal/views/optional_features.dart';
 import 'package:mdi/mdi.dart';
-import 'package:objectdb/objectdb.dart';
 
 class DreamRecord {
-  final String? id;
+  final String? _id;
   //final ObjectDB database;
   late Map _document;
 
-  DreamRecord({this.id, Map? document}) :
+  String get id => _document["_id"];
+
+  DreamRecord({String? id, Map? document}) :
   assert(id != null || document != null),
+  this._id = id,
   this._document = document ?? {};
 
   Map toJSON() => _document;
 
   Future<void> loadDocument() async {
-    if (this.id != null) _document = database.firstWhere((element) => element["_id"] == id);
+    if (this._id != null) _document = database.firstWhere((element) => element["_id"] == _id);
     // /// WILD migration from flag to method
     // if (_document["wild"] == true && !methods.contains("WILD")) {
     //   await _update(_document, {
@@ -95,6 +97,8 @@ class DreamRecord {
   /// the Home and Search screens.
   bool get incomplete => _document["incomplete"] ?? false;
   set incomplete(bool value) => _update(_document, {"incomplete": value});
+
+  File get plotFile => File(platformStorageDir.absolute.path + "/lldj-plotlines/" + id + ".json");
 
   void _update(Map query, Map patch) {
     var index = database.indexOf(_document);
