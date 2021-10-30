@@ -5,6 +5,8 @@ import 'package:date_time_format/date_time_format.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:journal/db/dream.dart';
+import 'package:journal/db/realm.dart';
+import 'package:journal/views/editor.dart';
 import 'package:journal/views/optional_features.dart';
 import 'package:journal/views/details.dart' show DreamList;
 import 'package:journal/widgets/empty_state.dart';
@@ -55,14 +57,61 @@ class _DreamListScreenState extends State<DreamListScreen> {
       appBar: AppBar(
         title: Text(isSaving ? "Saving..." : "Dream Journal"),
         actions: [
-          IconButton(
-            icon: Icon(Icons.settings),
-            onPressed: () async {
-              await Get.toNamed("/settings");
-              setState(() => isListInitialized = false);
-              await reloadDreamList();
-            },
+          Tooltip(
+            message: "Search",
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: IconButton(
+                icon: Icon(Icons.search),
+                onPressed: () => Get.toNamed("/search"),
+                //color: Get.theme.colorScheme.secondary,
+              ),
+            ),
+          ),
+          PopupMenuButton(
+            itemBuilder: (context) => [
+              if (OptionalFeatures.counters) PopupMenuItem(child: Row(
+                children: [
+                  Icon(Mdi.chartBar),
+                  Padding(padding: EdgeInsets.all(8.0)),
+                  Text("Statistics"),
+                ],
+                mainAxisSize: MainAxisSize.min,
+              ), value: "/stats",),
+              PopupMenuItem(
+                child: Divider(),
+                height: 8,
+                padding: EdgeInsets.zero,
+                enabled: false,
+              ),
+              PopupMenuItem(child: Row(
+                children: [
+                  Icon(Icons.settings),
+                  Padding(padding: EdgeInsets.all(8.0)),
+                  Text("Settings"),
+                ],
+                mainAxisSize: MainAxisSize.min,
+              ), value: "/settings"),
+              PopupMenuItem(child: Row(
+                children: [
+                  Icon(Icons.info),
+                  Padding(padding: EdgeInsets.all(8.0)),
+                  Text("About"),
+                ],
+                mainAxisSize: MainAxisSize.min,
+              ), value: "/about")
+            ],
+            onSelected: (value) {Get.back(); if (value is String && value != "") Get.toNamed(value);},
+            tooltip: "More...",
           )
+          // IconButton(
+          //   icon: Icon(Icons.settings),
+          //   onPressed: () async {
+          //     await Get.toNamed("/settings");
+          //     setState(() => isListInitialized = false);
+          //     await reloadDreamList();
+          //   },
+          // )
         ],
       ),
       body: isListInitialized ? 
@@ -87,17 +136,6 @@ class _DreamListScreenState extends State<DreamListScreen> {
         child: Row(
           //buttonTextTheme: ButtonTextTheme.primary,
           children: [
-            Tooltip(
-              message: "Search",
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: IconButton(
-                  icon: Icon(Icons.search),
-                  onPressed: () => Get.toNamed("/search"),
-                  color: Get.theme.colorScheme.secondary,
-                ),
-              ),
-            ),
             FutureBuilder(
               future: canLaunch("https://ldr.1024256.xyz"),
               builder: (context, snapshot) => snapshot.data == true ? Tooltip(
@@ -125,7 +163,7 @@ class _DreamListScreenState extends State<DreamListScreen> {
               message: "Tag a dream",
               child: IconButton(
                 icon: Icon(Icons.tag),
-                onPressed: () => Get.toNamed("/tag"),
+                onPressed: () => Get.toNamed("/dreams/tag"),
                 //style: ButtonStyle(foregroundColor: _Gold(), padding: _Padding(8)),
                 color: Get.theme.colorScheme.secondary
               ),
@@ -135,7 +173,7 @@ class _DreamListScreenState extends State<DreamListScreen> {
                 padding: const EdgeInsets.all(8.0),
                 child: Row(children: [Icon(Icons.add), Container(width: 8, height: 0), Text("New Entry")], mainAxisSize: MainAxisSize.min),
               ),
-              onPressed: () => Get.toNamed("/new"),
+              onPressed: () => Get.toNamed("/dreams/new"),
               style: ButtonStyle(foregroundColor: _Gold(), padding: _Padding(8)),
             ),
           ]
@@ -156,13 +194,18 @@ class _Padding extends MaterialStateProperty<EdgeInsetsGeometry> {
 }
 
 class DreamEntry extends StatelessWidget {
-  final DreamRecord dream;
+  final CanBeSearchResult dream;
   final List<DreamRecord>? list;
 
   DreamEntry({Key? key, required this.dream, this.list}) : super(key: key);
   
   @override
   Widget build(BuildContext context) {
+    return dream is DreamRecord ? _buildDreamEntry(context, dream as DreamRecord)
+    : /* dream is RealmRecord ? */ _buildRealmEntry(context, dream as RealmRecord);
+  }
+
+  Widget _buildDreamEntry(BuildContext context, DreamRecord dream) {
     var _dateFormat = sharedPreferences.containsKey("datetime-format")
       ? sharedPreferences.getString("datetime-format") : DateTimeFormats.commonLogFormat;
     var _nightFormat = sharedPreferences.containsKey("night-format")
@@ -196,7 +239,7 @@ class DreamEntry extends StatelessWidget {
         //         : Icon(Icons.cloud_outlined),
         leading: dream.type.gradient == null ? Icon(dream.type.icon) 
         : GradientIcon(dream.type.icon, 24, dream.type.gradient!),
-        onTap: () => Get.toNamed("/details", arguments: dream),
+        onTap: () => Get.toNamed("/dreams/details", arguments: dream),
       ) else ListTile(
         title: Text("Finish this dream!"),
         subtitle: Text(
@@ -206,7 +249,23 @@ class DreamEntry extends StatelessWidget {
           overflow: TextOverflow.fade
         ),
         leading: Icon(Icons.info_outline_rounded),
-        onTap: () => Get.toNamed("/complete", arguments: dream),
+        onTap: () => Get.toNamed("/dreams/complete", arguments: dream),
+        onLongPress: () => Get.to(() => DreamEdit(mode: DreamEditMode.tag, dream: dream)),
+      ),
+      Divider(height: 1)
+    ]);
+  }
+  Widget _buildRealmEntry(BuildContext context, RealmRecord realm) {
+    var _dateFormat = sharedPreferences.containsKey("datetime-format")
+      ? sharedPreferences.getString("datetime-format") : DateTimeFormats.commonLogFormat;
+    var _nightFormat = sharedPreferences.containsKey("night-format")
+      ? sharedPreferences.getString("night-format") ?? "M j" : "M j";
+    return Column(children: [
+      ListTile(
+        title: Text(realm.title == "" ? "Untitled Persistent Realm" : realm.title),
+        subtitle: Text(realm.body, maxLines: 2, overflow: TextOverflow.fade),
+        leading: GradientIcon(Icons.public, 24, blueGreenGradient),
+        onTap: () => Get.toNamed("/realms/details", arguments: dream),
       ),
       Divider(height: 1)
     ]);

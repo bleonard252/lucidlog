@@ -6,7 +6,12 @@ import 'package:journal/main.dart';
 import 'package:journal/views/optional_features.dart';
 import 'package:mdi/mdi.dart';
 
-class DreamRecord {
+mixin CanBeSearchResult {}
+abstract class RecordWithId {
+  String get id;
+}
+
+class DreamRecord with CanBeSearchResult implements RecordWithId {
   final String? _id;
   //final ObjectDB database;
   late Map _document;
@@ -38,6 +43,9 @@ class DreamRecord {
   /// The dream's "body," or summary.
   String get body => _document["body"] ?? "No body provided";
   set body(String value) => _update(_document, {"body": value});
+
+  String? get realm => _document["realm"];
+  set realm(String? value) => _update(_document, {"body": value == "" ? null : value});
 
   /// Whether or not the dream was lucid.
   bool get lucid => _document["lucid"] ?? false;

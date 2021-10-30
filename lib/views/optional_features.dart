@@ -1,4 +1,5 @@
 import "package:flutter/material.dart";
+import 'package:get/get.dart';
 import 'package:journal/main.dart';
 import 'package:shared_preferences_settings/shared_preferences_settings.dart' as Settings;
 
@@ -54,7 +55,27 @@ class OptionalFeaturesSettingsScreen extends StatelessWidget {
             "none": "Off"
           },
           defaultKey: "none",
-        )
+        ),
+        GestureDetector(
+          behavior: HitTestBehavior.deferToChild,
+          onTapDown: (_) async {
+            if (await realmDatabaseFile.exists()) return;
+            await realmDatabaseFile.writeAsString("[]");
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                content: Text("The PR database has been created."),
+                duration: Duration(seconds: 5),
+                animation: null,
+              ),
+            );
+          },
+          child: Settings.SwitchSettingsTile(
+            title: "Persistent Realms",
+            subtitle: "PRs for short. An intentionally recurring or continuing setting or dream. Comparable to a Minecraft world. "
+            "Use this feature to keep track of your PRs and the dreams in it.",
+            settingKey: "opt-realms",
+            defaultValue: false,
+          ),
+        ),
       ]
     );
   }
@@ -94,6 +115,9 @@ abstract class OptionalFeatures {
   sharedPreferences.getString("opt-plotlines") == "expandable" ? PlotlineTypes.EXPANDABLE
   : sharedPreferences.getString("opt-plotlines") == "slider" ? PlotlineTypes.SLIDER
   : PlotlineTypes.NONE;
+  /// Whether to show the Persistent Realms page, filter, and dream editor page.
+  /// Does not affect the PR label on dreams, but it does disable the link.
+  static get realms => sharedPreferences.getBool("opt-realms") ?? false;
 }
 
 enum PlotlineTypes {

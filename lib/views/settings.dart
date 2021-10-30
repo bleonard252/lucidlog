@@ -90,11 +90,6 @@ class SettingsRoot extends StatelessWidget {
           // ],
           screen: MethodsSettingsScreen(),
         ),
-        ListTile(
-          title: Text("About"),
-          leading: Icon(Icons.info),
-          onTap: () => Get.toNamed("/about"),
-        ),
         Settings.SettingsTileGroup(
           title: "Storage",
           children: [

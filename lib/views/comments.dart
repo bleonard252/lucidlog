@@ -11,7 +11,7 @@ import 'package:journal/db/dream.dart';
 import 'package:journal/main.dart';
 
 class DetailsCommentsSection extends StatefulWidget {
-  final DreamRecord dream;
+  final RecordWithId dream;
   const DetailsCommentsSection({ required this.dream, Key? key }) : super(key: key);
 
   @override

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:get/get.dart';
 import 'package:journal/db/dream.dart';
+import 'package:journal/db/realm.dart';
 import 'package:journal/main.dart';
 import 'package:journal/views/comments.dart';
 import 'package:journal/views/optional_features.dart';
@@ -67,7 +68,7 @@ class DreamDetails extends StatelessWidget {
                 ),
                 IconButton(
                   icon: Icon(Icons.edit),
-                  onPressed: () => Get.offAndToNamed("/edit", arguments: dream)
+                  onPressed: () => Get.offAndToNamed("/dreams/edit", arguments: dream)
                 )
               ],
               backgroundColor: Get.theme.canvasColor,

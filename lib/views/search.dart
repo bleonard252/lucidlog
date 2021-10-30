@@ -101,13 +101,11 @@ class _SearchScreenState extends State<SearchScreen> {
           ),
           onChanged: (v) => reloadDreamList(),
         ),
-        actions: controller.value.text == "" && widget.mode == SearchListMode.search
-        ? [
-          if (OptionalFeatures.counters) IconButton(
-            onPressed: () => Get.toNamed("/stats"),
-            icon: Icon(Mdi.chartBar)
-          )
-        ] : widget.filter?.actions,
+        // actions: controller.value.text == "" && widget.mode == SearchListMode.search
+        // ? [
+          
+        // ] : 
+        actions: widget.filter?.actions,
       ),
       body: list.length > 0 ? ListView.builder(
         itemBuilder: (_, i) => i == 0 && widget.mode == SearchListMode.search ? Padding(
