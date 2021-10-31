@@ -47,7 +47,7 @@ class _RealmEditState extends State<RealmEdit> {
       color: Get.theme.primaryColor,
       pages: [
         PageViewModel(
-          title: "",
+          title: "Record a Persistent Realm",
           bodyWidget: SingleChildScrollView(
             child: Column(
               children: [
@@ -158,7 +158,7 @@ class _RealmEditState extends State<RealmEdit> {
         //   footer: TextButton(onPressed: () => setState(() => plot.add({"body": "New body text"})), child: Text("New plot point"))
         // ),
         if (dreamList.isNotEmpty && widget.mode == RealmEditMode.create) PageViewModel(
-          title: "",
+          title: "Add dreams to your PR!",
           bodyWidget: StatefulBuilder(
             builder: (context, setState) {
               return ListView.builder(
@@ -209,7 +209,7 @@ class _RealmEditState extends State<RealmEdit> {
         } else {
           realmDatabase[realmDatabase.indexWhere((element) => element["_id"] == widget.realm!.id)] = newData;
         }
-        Get.back(); Get.offNamed("/realms/list");
+        Get.back();
       },
     );
   }

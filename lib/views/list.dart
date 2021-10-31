@@ -9,6 +9,7 @@ import 'package:journal/db/realm.dart';
 import 'package:journal/views/editor.dart';
 import 'package:journal/views/optional_features.dart';
 import 'package:journal/views/details.dart' show DreamList;
+import 'package:journal/views/realms/list.dart';
 import 'package:journal/widgets/empty_state.dart';
 import 'package:journal/main.dart';
 import 'package:journal/widgets/gradienticon.dart';
@@ -49,6 +50,7 @@ class _DreamListScreenState extends State<DreamListScreen> {
   void initState() {
     super.initState();
     reloadDreamList();
+    RealmListScreen.reloadRealmList();
   }
 
   @override

@@ -8,6 +8,7 @@ import 'package:journal/views/comments.dart';
 import 'package:journal/views/optional_features.dart';
 import 'package:journal/views/plotline.dart';
 import 'package:journal/views/search.dart';
+import 'package:journal/widgets/gradienticon.dart';
 import 'package:mdi/mdi.dart';
 import 'package:date_time_format/date_time_format.dart';
 import 'package:share_plus/share_plus.dart';
@@ -273,6 +274,18 @@ class DreamDetails extends StatelessWidget {
                         respectNightly: true
                       ),
                     )),
+                  ),
+                  if (dream.realm?.isNotEmpty == true) Builder(
+                    builder: (context) {
+                      final _realm = RealmRecord(id: dream.realm!);
+                      _realm.loadDocument();
+                      return ListTile(
+                        leading: dream.realmCanon == true ? GradientIcon(Icons.public, 24, blueGreenGradient) : Icon(Mdi.earthOff),
+                        title: Text("Persistent Realm"),
+                        subtitle: Text(_realm.title+(dream.realmCanon != true ? "\nNon-canon" : "")),
+                        onTap: () => Get.toNamed("/realms/details", arguments: _realm)
+                      );
+                    }
                   ),
                   if (OptionalFeatures.counters) ListTile(
                     leading: Icon(Mdi.clockOutline),

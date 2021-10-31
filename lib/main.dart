@@ -82,23 +82,21 @@ void main() async {
     await databaseFile.writeAsString("[]");
   }
   realmDatabaseFile = File(platformStorageDir.absolute.path + "/lldj-realms.json");
-  if (!await realmDatabaseFile.exists() && OptionalFeatures.realms) {
-    // await realmDatabaseFile.create(recursive: true);
-    // await realmDatabaseFile.writeAsString("[]");
-    return runApp(PreflightScreen(
-      child: EmptyState(
-        icon: Icon(Mdi.listStatus),
-        text: Text("The PR list should have already been created if the Persistent Realms optional feature is on."),
-        preflight: true,
-      )
-    ));
+  if (!await realmDatabaseFile.exists()) {
+    await realmDatabaseFile.create(recursive: true);
+    await realmDatabaseFile.writeAsString("[]");
+    // return runApp(PreflightScreen(
+    //   child: EmptyState(
+    //     icon: Icon(Mdi.listStatus),
+    //     text: Text("The PR list should have already been created if the Persistent Realms optional feature is on."),
+    //     preflight: true,
+    //   )
+    // ));
   }
   if (sharedPreferences.getBool("onboarding-completed") ?? false) {
     database = jsonDecode(await databaseFile.readAsString()) as dynamic; //sharedPreferences.getString("storage-path")!));
-    if (OptionalFeatures.realms) {
-      realmDatabase = jsonDecode(await realmDatabaseFile.readAsString()) as dynamic;
-      isRealmDatabaseLoaded = true;
-    }
+    realmDatabase = jsonDecode(await realmDatabaseFile.readAsString()) as dynamic;
+    isRealmDatabaseLoaded = true;
   }
   final _commentsFolder = Directory(platformStorageDir.absolute.path + "/lldj-comments/");
   if (!await _commentsFolder.exists()) await _commentsFolder.create();

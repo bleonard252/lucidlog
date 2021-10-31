@@ -15,6 +15,20 @@ class RealmListScreen extends StatefulWidget {
     Key? key
   }) : super(key: key);
 
+  static Future<void> reloadRealmList() {
+    List<RealmRecord> _list = [];
+    realmDatabase.forEach((element) {
+      var _ = RealmRecord(document: element);
+      _.loadDocument();
+      _list.add(_);
+    });
+    _list.forEach((element) => element.includedDreams());
+    _list.sort((a, b) => a.timestamp.compareTo(b.timestamp));
+    var list = _list.reversed.toList();
+    realmList = list;
+    return realmDatabaseFile.writeAsString(jsonEncode(list.toListOfMap()));
+  }
+
   @override
   _RealmListScreenState createState() => _RealmListScreenState();
 }
@@ -26,10 +40,9 @@ class _RealmListScreenState extends State<RealmListScreen> {
 
   Future<void> reloadRealmList() {
     List<RealmRecord> _list = [];
-    List<Future> _futures = [];
     realmDatabase.forEach((element) {
       var _ = RealmRecord(document: element);
-      _futures.add(_.loadDocument());
+      _.loadDocument();
       _list.add(_);
     });
     _list.forEach((element) => element.includedDreams());
@@ -89,7 +102,11 @@ class _RealmListScreenState extends State<RealmListScreen> {
                 padding: const EdgeInsets.all(8.0),
                 child: Row(children: [Icon(Icons.add), Container(width: 8, height: 0), Text("New PR")], mainAxisSize: MainAxisSize.min),
               ),
-              onPressed: () => Get.toNamed("/realms/new"),
+              onPressed: () async {
+                await Get.toNamed("/realms/new");
+                await reloadRealmList();
+                setState(() {});
+              },
               style: ButtonStyle(foregroundColor: _BlueGreen(), padding: _Padding(8)),
             ),
           ]

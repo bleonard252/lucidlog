@@ -15,7 +15,7 @@ class RealmRecord with CanBeSearchResult implements RecordWithId {
 
   Map toJSON() => _document;
 
-  Future<void> loadDocument() async {
+  void loadDocument() async {
     if (this._id != null) _document = realmDatabase.firstWhere((element) => element["_id"] == _id);
   }
   
