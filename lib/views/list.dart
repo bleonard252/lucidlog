@@ -273,10 +273,6 @@ class DreamEntry extends StatelessWidget {
     ]);
   }
   Widget _buildRealmEntry(BuildContext context, RealmRecord realm) {
-    var _dateFormat = sharedPreferences.containsKey("datetime-format")
-      ? sharedPreferences.getString("datetime-format") : DateTimeFormats.commonLogFormat;
-    var _nightFormat = sharedPreferences.containsKey("night-format")
-      ? sharedPreferences.getString("night-format") ?? "M j" : "M j";
     return Column(children: [
       ListTile(
         title: Text(realm.title == "" ? "Untitled Persistent Realm" : realm.title),

@@ -1,16 +1,9 @@
-import 'dart:convert';
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:introduction_screen/introduction_screen.dart';
-import 'package:journal/db/dream.dart';
 import 'package:journal/db/realm.dart';
 import 'package:journal/main.dart';
-import 'package:journal/views/list.dart';
-import 'package:journal/views/optional_features.dart';
 import 'package:objectdb/objectdb.dart';
-import 'package:date_field/date_field.dart';
 
 class RealmEdit extends StatefulWidget {
   final RealmRecord? realm;

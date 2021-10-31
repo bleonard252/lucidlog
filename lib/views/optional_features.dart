@@ -1,5 +1,4 @@
 import "package:flutter/material.dart";
-import 'package:get/get.dart';
 import 'package:journal/main.dart';
 import 'package:shared_preferences_settings/shared_preferences_settings.dart' as Settings;
 

@@ -7,17 +7,15 @@ import 'package:journal/main.dart';
 import 'package:journal/views/comments.dart';
 import 'package:journal/views/list.dart';
 import 'package:journal/views/optional_features.dart';
-import 'package:journal/views/plotline.dart';
-import 'package:journal/views/search.dart';
 import 'package:journal/widgets/empty_state.dart';
 import 'package:mdi/mdi.dart';
 import 'package:date_time_format/date_time_format.dart';
-import 'package:share_plus/share_plus.dart';
 
 extension RealmList on List<RealmRecord> {
   List<Map> toListOfMap() => this.map((e) => e.toJSON()).toList();
 }
 
+// ignore: must_be_immutable
 class RealmDetails extends StatelessWidget {
   final RealmRecord realm;
   //final List<RealmRecord>? list = realmList.reversed.toList();
