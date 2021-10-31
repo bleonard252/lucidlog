@@ -95,8 +95,10 @@ void main() async {
   }
   if (sharedPreferences.getBool("onboarding-completed") ?? false) {
     database = jsonDecode(await databaseFile.readAsString()) as dynamic; //sharedPreferences.getString("storage-path")!));
-    realmDatabase = jsonDecode(await databaseFile.readAsString()) as dynamic;
-    isRealmDatabaseLoaded = true;
+    if (OptionalFeatures.realms) {
+      realmDatabase = jsonDecode(await realmDatabaseFile.readAsString()) as dynamic;
+      isRealmDatabaseLoaded = true;
+    }
   }
   final _commentsFolder = Directory(platformStorageDir.absolute.path + "/lldj-comments/");
   if (!await _commentsFolder.exists()) await _commentsFolder.create();

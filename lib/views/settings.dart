@@ -112,7 +112,7 @@ class SettingsRoot extends StatelessWidget {
                 final outfile = File(platformStorageDir.absolute.path + "/export.tgz");
                 final tarEntries = Stream<TarEntry>.fromIterable([
                   TarEntry(TarHeader(name: "dreamjournal.json"), databaseFile.openRead()),
-                  // Add the PRs file here at some point
+                  TarEntry(TarHeader(name: "lldj-realms.json"), realmDatabaseFile.openRead()),
                   await for (var file in Directory(platformStorageDir.absolute.path + "/lldj-comments/").list())
                     if (file is File) TarEntry(TarHeader(name: "lldj-comments/"+file.uri.pathSegments.last), file.openRead()),
                   await for (var file in Directory(platformStorageDir.absolute.path + "/lldj-plotlines/").list())
@@ -189,7 +189,6 @@ class SettingsRoot extends StatelessWidget {
                         late final List _dreams;
                         try {
                           _importedDreams = jsonDecode(await entry.contents.transform(utf8.decoder).fold("", (previous, element) => previous+element));
-                          //print(_importedDreams);
                           _dreams = [
                             for (var dream in database) if (!_importedDreams.map((element) => element["_id"]).contains(dream["_id"])) dream,
                             for (var dream in _importedDreams) dream
@@ -200,7 +199,21 @@ class SettingsRoot extends StatelessWidget {
                         database.clear();
                         database.addAll(_dreams.toList());
                         await databaseFile.writeAsString(jsonEncode(_dreams), flush: true);
-                        //print(_dreams);
+                      } else if (entry.name == "lldj-realms.json") {
+                        late final List _importedRealms;
+                        late final List _realms;
+                        try {
+                          _importedRealms = jsonDecode(await entry.contents.transform(utf8.decoder).fold("", (previous, element) => previous+element));
+                          _realms = [
+                            for (var realm in database) if (!_importedRealms.map((element) => element["_id"]).contains(realm["_id"])) realm,
+                            for (var realm in _importedRealms) realm
+                          ];
+                        } on Exception {
+                          _realms = realmDatabase;
+                        }
+                        realmDatabase.clear();
+                        realmDatabase.addAll(_realms.toList());
+                        await realmDatabaseFile.writeAsString(jsonEncode(_realms), flush: true);
                       } else if (entry.name.startsWith("lldj-plotlines/")) {
                         // Plotlines information always overrides, as these are simply
                         // an addition to the entry itself.

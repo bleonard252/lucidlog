@@ -40,9 +40,14 @@ class RealmRecord with CanBeSearchResult implements RecordWithId {
 
   List<DreamRecord> includedDreams([List<DreamRecord>? list]) {
     list = list ?? dreamList;
-    var _list = list.where((e) => e.realm == _id).toList();
-    _list.sort((a, b) => a.timestamp.compareTo(b.timestamp));
-    this.timestamp = _list.last.timestamp;
+    late List<DreamRecord> _list;
+    try {
+      _list = list.where((e) => e.realm == id).toList();
+      _list.sort((a, b) => a.timestamp.compareTo(b.timestamp));
+      this.timestamp = _list.last.timestamp;
+    } on StateError {
+      _list = [];
+    }
     return _list.reversed.toList();
   }
 

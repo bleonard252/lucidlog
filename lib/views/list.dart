@@ -77,7 +77,15 @@ class _DreamListScreenState extends State<DreamListScreen> {
                   Text("Statistics"),
                 ],
                 mainAxisSize: MainAxisSize.min,
-              ), value: "/stats",),
+              ), value: "/stats"),
+              if (OptionalFeatures.realms) PopupMenuItem(child: Row(
+                children: [
+                  Icon(Icons.public),
+                  Padding(padding: EdgeInsets.all(8.0)),
+                  Text("Persistent Realms"),
+                ],
+                mainAxisSize: MainAxisSize.min,
+              ), value: "/realms/list"),
               PopupMenuItem(
                 child: Divider(),
                 height: 8,
