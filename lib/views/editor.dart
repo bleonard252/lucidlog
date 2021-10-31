@@ -28,13 +28,16 @@ class _DreamEditState extends State<DreamEdit> {
   late final TextEditingController summaryController;
   late final TextEditingController tagController;
   bool isDreamLucid = false;
+  bool _isDreamInRealm = false;
+  bool isDreamCanonToRealm = true;
   //bool isDreamWild = false;
   bool isDreamForgotten = false;
   List<String> tags = [];
   List<String> methods = [];
   List<Map<String, dynamic>> plot = [];
   DateTime dateValue = DateTime.now();
-  late bool isPlotlinesEnabled;
+  bool isPlotlinesEnabled = false;
+  String selectedRealmId = "";
 
   @override
   void initState() {
@@ -47,10 +50,13 @@ class _DreamEditState extends State<DreamEdit> {
     dateValue = widget.dream?.timestamp ?? dateValue;
     tags = widget.dream?.tags ?? [];
     methods = widget.dream?.methods ?? [];
-    if (widget.dream?.id != null) File(platformStorageDir.absolute.path + "/lldj-plotlines/" + widget.dream!.id).readAsString().then((value) {
+    if (widget.dream?.id != null) File(platformStorageDir.absolute.path + "/lldj-plotlines/" + widget.dream!.id + ".json").readAsString().then((value) {
       plot = jsonDecode(value);
     });
     isPlotlinesEnabled = plot.isNotEmpty || widget.mode == DreamEditMode.edit;
+    selectedRealmId = widget.dream?.realm ?? "";
+    _isDreamInRealm = selectedRealmId != "";
+    isDreamCanonToRealm = widget.dream?.realmCanon ?? true;
     super.initState();
   }
 
@@ -204,7 +210,35 @@ class _DreamEditState extends State<DreamEdit> {
               value: methods.contains("WILD"),
               onChanged: (newValue) => setState(() => newValue ? methods.add("WILD") : methods.remove("WILD"))
             ),
+            if (OptionalFeatures.realms) SwitchListTile(
+              title: Text("Was this dream in a persistent realm?"),
+              subtitle: Text("Did this dream take place in a persistent realm, whether you consider it part of the plot."),
+              value: _isDreamInRealm, 
+              onChanged: (newValue) => setState(() => _isDreamInRealm = newValue)
+            ),
+            if (_isDreamInRealm) SwitchListTile(
+              title: Text("Do you consider this dream canon?"),
+              subtitle: Text("Is this dream part of the plot for the PR?"),
+              value: isDreamCanonToRealm,
+              onChanged: (newValue) => setState(() => isDreamCanonToRealm = newValue)
+            ),
           ])
+        ),
+        if (_isDreamInRealm) PageViewModel(
+          title: "Select the persistent realm",
+          bodyWidget: StatefulBuilder(
+            builder: (context, setState) {
+              return ListView.builder(
+                shrinkWrap: true,
+                itemBuilder: (_, i) => realmList[i].title == "" ? Container() : ListTile(
+                  selected: selectedRealmId == realmList[i].id,
+                  title: Text(realmList[i].title),
+                  onTap: () => setState(() => selectedRealmId = realmList[i].id),
+                ),
+                itemCount: realmList.length,
+              );
+            }
+          )
         ),
         if (isDreamLucid && widget.mode != DreamEditMode.tag && OptionalFeatures.rememberMethods) PageViewModel(
           title: "Methods used",
@@ -246,19 +280,32 @@ class _DreamEditState extends State<DreamEdit> {
                 final _bodyController = event["bc"] ?? TextEditingController(text: event["body"] ?? "No body! Whoops");
                 plot[plot.indexOf(event)]["bc"] = _bodyController;
                 return Column(children: [
-                  TextField(
-                    controller: _titleController,
-                    onChanged: (newValue) {
-                      final index = plot.indexOf(event);
-                      plot[index]["subtitle"] = newValue;
-                      setState(() {});
-                    },
-                    decoration: InputDecoration(
-                      labelText: "Subtitle",
-                      hintText: "Subtitles help you identify scenes or events.",
-                    ),
-                    keyboardAppearance: Brightness.dark,
-                    keyboardType: TextInputType.text,
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: _titleController,
+                          onChanged: (newValue) {
+                            final index = plot.indexOf(event);
+                            plot[index]["subtitle"] = newValue;
+                            setState(() {});
+                          },
+                          decoration: InputDecoration(
+                            labelText: "Subtitle",
+                            hintText: "Subtitles help you identify scenes or events.",
+                          ),
+                          keyboardAppearance: Brightness.dark,
+                          keyboardType: TextInputType.text,
+                        ),
+                      ),
+                      Tooltip(
+                        message: "Remove",
+                        child: IconButton(
+                          icon: Icon(Icons.close),
+                          onPressed: () => setState(() => plot.remove(event)),
+                        ),
+                      )
+                    ],
                   ),
                   TextField(
                     controller: _bodyController,
@@ -299,6 +346,24 @@ class _DreamEditState extends State<DreamEdit> {
         setState(() {});
       },
       onDone: () async {
+        // == CHECK
+        if (!isDreamForgotten && titleController.value.text.isEmpty && summaryController.value.text.isEmpty) return await Get.dialog(AlertDialog(
+          title: Text("Content missing"),
+          content: Text("How do you expect to remember a dream with nothing written down for it?"),
+          actions: [TextButton(child: Padding(padding: const EdgeInsets.all(8.0), child: Text("OK")), onPressed: () => Get.back())],
+        ));
+        if (!isDreamForgotten && summaryController.value.text.isEmpty) return await Get.dialog(AlertDialog(
+          title: Text("Summary missing"),
+          content: Text("You need to have some contents for dreams you remember."),
+          actions: [TextButton(child: Padding(padding: const EdgeInsets.all(8.0), child: Text("OK")), onPressed: () => Get.back())],
+        ));
+        if (_isDreamInRealm && selectedRealmId.isEmpty) return await Get.dialog(AlertDialog(
+          title: Text("PR selection missing"),
+          content: Text("If this dream is part of a PR, you need to specify which PR it is in."),
+          actions: [TextButton(child: Padding(padding: const EdgeInsets.all(8.0), child: Text("OK")), onPressed: () => Get.back())],
+        ));
+        
+        // == SAVE
         var newData = {
           "_id": widget.dream?.id ?? ObjectId().hexString,
           "title": titleController.value.text,
@@ -309,7 +374,9 @@ class _DreamEditState extends State<DreamEdit> {
           "forgotten": isDreamForgotten,
           "tags": tags,
           "methods": isDreamLucid ? methods : [],
-          "incomplete": (widget.mode == DreamEditMode.tag)
+          "incomplete": (widget.mode == DreamEditMode.tag),
+          "realm": _isDreamInRealm ? selectedRealmId : null,
+          "realm_canon": _isDreamInRealm && selectedRealmId.isNotEmpty ? isDreamCanonToRealm == true : null
         };
         final plotFile = File(platformStorageDir.absolute.path + "/lldj-plotlines/" + (newData["_id"] as String) + ".json");
         if (OptionalFeatures.plotlines != PlotlineTypes.NONE && isPlotlinesEnabled) {

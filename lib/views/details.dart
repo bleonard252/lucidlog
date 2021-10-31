@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:get/get.dart';
 import 'package:journal/db/dream.dart';
+import 'package:journal/db/realm.dart';
 import 'package:journal/main.dart';
 import 'package:journal/views/comments.dart';
 import 'package:journal/views/optional_features.dart';
 import 'package:journal/views/plotline.dart';
 import 'package:journal/views/search.dart';
+import 'package:journal/widgets/gradienticon.dart';
 import 'package:mdi/mdi.dart';
 import 'package:date_time_format/date_time_format.dart';
 import 'package:share_plus/share_plus.dart';
@@ -44,9 +46,9 @@ class DreamDetails extends StatelessWidget {
       ? sharedPreferences.getString("datetime-format") : DateTimeFormats.commonLogFormat;
     var _nightFormat = sharedPreferences.containsKey("night-format")
       ? sharedPreferences.getString("night-format") ?? "M j" : "M j";
-    return Material(
-      color: Get.theme.canvasColor,
-      child: Container(
+    return Scaffold(
+      backgroundColor: Get.theme.canvasColor,
+      body: Container(
         width: 640,
         alignment: Alignment.topCenter,
         child: SingleChildScrollView(child: Column(
@@ -67,7 +69,7 @@ class DreamDetails extends StatelessWidget {
                 ),
                 IconButton(
                   icon: Icon(Icons.edit),
-                  onPressed: () => Get.offAndToNamed("/edit", arguments: dream)
+                  onPressed: () => Get.offAndToNamed("/dreams/edit", arguments: dream)
                 )
               ],
               backgroundColor: Get.theme.canvasColor,
@@ -131,18 +133,13 @@ class DreamDetails extends StatelessWidget {
                       softLineBreak: true,
                     )
                   ),
-                  FutureBuilder(
-                    future: dream.plotFile.exists(),
-                    builder: (ctx, snap) => snap.hasData && snap.data == true ? Flexible(
-                      fit: FlexFit.loose,
-                      child: Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: PlotlineWidget(dream: dream)
-                      ),
-                    ) : Container()
-                  )
                 ])
               )
+            ),
+            FutureBuilder(
+              future: dream.plotFile.exists(),
+              builder: (ctx, snap) => snap.hasData && snap.data == true 
+              ? PlotlineWidget(dream: dream) : Container()
             ),
             if (dream.tags.isNotEmpty) Container(
               padding: const EdgeInsets.symmetric(vertical: 4),
@@ -272,6 +269,18 @@ class DreamDetails extends StatelessWidget {
                         respectNightly: true
                       ),
                     )),
+                  ),
+                  if (dream.realm?.isNotEmpty == true) Builder(
+                    builder: (context) {
+                      final _realm = RealmRecord(id: dream.realm!);
+                      _realm.loadDocument();
+                      return ListTile(
+                        leading: dream.realmCanon == true ? GradientIcon(Icons.public, 24, blueGreenGradient) : Icon(Mdi.earthOff),
+                        title: Text("Persistent Realm"),
+                        subtitle: Text(_realm.title+(dream.realmCanon != true ? "\nNon-canon" : "")),
+                        onTap: () => Get.toNamed("/realms/details", arguments: _realm)
+                      );
+                    }
                   ),
                   if (OptionalFeatures.counters) ListTile(
                     leading: Icon(Mdi.clockOutline),

@@ -33,7 +33,7 @@ class SearchFilter {
   /// Used to sort the entries depending on what's most important.
   /// If this is null, the list is not sorted.
   /// Mutually exclusive with [respectNightly].
-  final int Function(DreamRecord a, DreamRecord b)? sorter;
+  final int Function(dynamic a, dynamic b)? sorter;
   final List<Widget>? actions;
 
   SearchFilter({
@@ -58,15 +58,21 @@ class SearchScreen extends StatefulWidget {
 }
 
 class _SearchScreenState extends State<SearchScreen> {
-  List<DreamRecord> list = [];
+  List<CanBeSearchResult> list = [];
   late TextEditingController controller;
 
-  Future<void> reloadDreamList() async {
+  Future<void> reloadSearchList() async {
     if (widget.mode == SearchListMode.search) {
-      final _list = dreamList.where((document) => 
-        document.title.toLowerCase().contains(controller.value.text.toLowerCase())
-        || document.body.toLowerCase().contains(controller.value.text.toLowerCase())
-      ).toList();
+      final List<CanBeSearchResult> _list = [
+        ...dreamList.where((document) => 
+          document.title.toLowerCase().contains(controller.value.text.toLowerCase())
+          || document.body.toLowerCase().contains(controller.value.text.toLowerCase())
+        ).toList(),
+        ...realmList.where((document) =>
+          document.title.toLowerCase().contains(controller.value.text.toLowerCase())
+          || document.body.toLowerCase().contains(controller.value.text.toLowerCase())
+        ).toList()
+      ];
       //list.sort((a, b) => (StringSimilarity.compareTwoStrings(a.title + a.body, b.title + b.body)*3).floor()-2);
       _list.sort((a, b) => (StringSimilarity.compareTwoStrings(controller.value.text.toLowerCase(), (a.title + a.body).toLowerCase())
         .compareTo(StringSimilarity.compareTwoStrings(controller.value.text.toLowerCase(), (b.title + b.body).toLowerCase()))));
@@ -85,7 +91,7 @@ class _SearchScreenState extends State<SearchScreen> {
   void initState() {
     super.initState();
     controller = TextEditingController();
-    reloadDreamList();
+    reloadSearchList();
   }
 
   @override
@@ -99,15 +105,13 @@ class _SearchScreenState extends State<SearchScreen> {
             hintText: "Search",
             border: InputBorder.none
           ),
-          onChanged: (v) => reloadDreamList(),
+          onChanged: (v) => reloadSearchList(),
         ),
-        actions: controller.value.text == "" && widget.mode == SearchListMode.search
-        ? [
-          if (OptionalFeatures.counters) IconButton(
-            onPressed: () => Get.toNamed("/stats"),
-            icon: Icon(Mdi.chartBar)
-          )
-        ] : widget.filter?.actions,
+        // actions: controller.value.text == "" && widget.mode == SearchListMode.search
+        // ? [
+          
+        // ] : 
+        actions: widget.filter?.actions,
       ),
       body: list.length > 0 ? ListView.builder(
         itemBuilder: (_, i) => i == 0 && widget.mode == SearchListMode.search ? Padding(
@@ -115,7 +119,7 @@ class _SearchScreenState extends State<SearchScreen> {
             child: Text("Found ${list.length} results", style: Get.textTheme.button?.copyWith(color: Get.theme.primaryColor)),
           ) : DreamEntry(
           dream: list[widget.mode == SearchListMode.search ? i-1 : i],
-          list: (widget.filter?.respectNightly ?? false) && OptionalFeatures.nightly ? list : null
+          list: (widget.filter?.respectNightly ?? false) && OptionalFeatures.nightly ? list.whereType<DreamRecord>().toList() : null
         ),
         itemCount: widget.mode == SearchListMode.search ? list.length+1 : list.length,
       ) : controller.value.text == "" ? widget.mode == SearchListMode.search ? ListView(children: [
@@ -169,7 +173,7 @@ class _SearchScreenState extends State<SearchScreen> {
             mode: SearchListMode.listOrFilter,
             filter: SearchFilter(
               name: "DILD Only",
-              predicate: (dream) => !dream.wild,
+              predicate: (dream) => dream.lucid && !dream.wild,
               respectNightly: true
             ),
           )),
@@ -223,13 +227,14 @@ class _SearchScreenState extends State<SearchScreen> {
             ),
           )),
         ).subtile(),
-        Divider(height: 0.0),
-        ListTile(
-          leading: Icon(Icons.public),
-          title: Text("List Persistent Realms"),
-          subtitle: Text("A tool for the talented."),
-          enabled: false,
-        ),
+        // BELOW: It's better to list PRs from the menu.
+        // Divider(height: 0.0),
+        // ListTile(
+        //   leading: Icon(Icons.public),
+        //   title: Text("List Persistent Realms"),
+        //   subtitle: Text("A tool for the talented."),
+        //   enabled: false,
+        // ),
       ]) : Center(child: EmptyState(
         icon: Icon(Icons.search_off),
         text: Text("No items matched the filter."),

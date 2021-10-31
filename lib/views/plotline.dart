@@ -48,17 +48,23 @@ class _PlotlineWidgetState extends State<PlotlineWidget> {
                 for (final point in list) ExpansionPanel(
                   headerBuilder: (_, __) => Container(
                     alignment: Alignment.centerLeft,
-                    child: Text(
-                      point.subtitle ?? "Scene "+(list.indexOf(point)+1).toString(),
-                      style: Get.textTheme.headline6
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Text(
+                        point.subtitle ?? "Scene "+(list.indexOf(point)+1).toString(),
+                        style: Get.textTheme.headline6
+                      ),
                     ),
                   ), 
                   body: Align(
                     alignment: Alignment.topLeft,
-                    child: MarkdownBody(
-                      data: point.body,
-                      selectable: true,
-                      softLineBreak: true,
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: MarkdownBody(
+                        data: point.body,
+                        selectable: true,
+                        softLineBreak: true,
+                      ),
                     ),
                   ),
                   canTapOnHeader: true,
@@ -68,41 +74,59 @@ class _PlotlineWidgetState extends State<PlotlineWidget> {
               expansionCallback: (index, activated) => setState(() => currentPoint = activated ? -1 : index.toDouble()),
             );
           case PlotlineTypes.SLIDER:
-            return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Slider(
-                value: currentPoint,
-                onChanged: (newPoint) => setState(() => currentPoint = newPoint),
-                label: list[currentPoint.floor()].subtitle ?? "Scene "+(currentPoint+1).floor().toString(),
-                divisions: list.length - 1,
-                min: 0,
-                max: list.length - 1,
-              ),
-              Text(list[currentPoint.floor()].subtitle ?? "Scene "+(currentPoint+1).floor().toString(), 
-                style: Get.textTheme.subtitle1?.copyWith(fontWeight: FontWeight.w700)),
-              MarkdownBody(
-                data: list[currentPoint.floor()].body,
-                selectable: true,
-                softLineBreak: true,
-              )
-            ], mainAxisSize: MainAxisSize.min);
-          default:
-            return Row(
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.start,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                  child: Icon(Icons.lightbulb, color: Get.theme.colorScheme.secondary),
+            return Container(
+              width: double.infinity,
+              child: Material(
+                color: Get.theme.cardColor,
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    //Text("Plot", style: Get.textTheme.subtitle1?.copyWith(fontWeight: FontWeight.w700)),
+                    Slider(
+                      value: currentPoint,
+                      onChanged: (newPoint) => setState(() => currentPoint = newPoint),
+                      label: list[currentPoint.floor()].subtitle ?? "Scene "+(currentPoint+1).floor().toString(),
+                      divisions: list.length - 1,
+                      min: 0,
+                      max: list.length - 1,
+                    ),
+                    Text(list[currentPoint.floor()].subtitle ?? "Scene "+(currentPoint+1).floor().toString(), 
+                      style: Get.textTheme.subtitle1?.copyWith(fontWeight: FontWeight.w700)),
+                    MarkdownBody(
+                      data: list[currentPoint.floor()].body,
+                      selectable: true,
+                      softLineBreak: true,
+                    )
+                  ], mainAxisSize: MainAxisSize.min),
                 ),
-                Flexible(
-                  flex: 0,
-                  fit: FlexFit.loose,
-                  child: Text("This entry has information for the Plotlines feature.\nEnable it to read more.",
-                    style: TextStyle(color: Get.theme.colorScheme.secondary)
+              ),
+            );
+          default:
+            return Container(
+              width: double.infinity,
+              child: Material(
+                color: Get.theme.cardColor,
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.max,
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                        child: Icon(Icons.lightbulb, color: Get.theme.colorScheme.secondary),
+                      ),
+                      Expanded(
+                        child: Text("This entry has information for the Plotlines feature.\nEnable it to read more.",
+                          maxLines: 4,
+                          style: TextStyle(color: Get.theme.colorScheme.secondary)
+                        ),
+                      )
+                    ],
                   ),
-                )
-              ],
+                ),
+              ),
             );
         }
       }

@@ -7,16 +7,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:get/get.dart';
 import 'package:journal/db/dream.dart';
+import 'package:journal/db/realm.dart';
 import 'package:journal/migrations/databasev6.dart';
-import 'package:journal/views/about.dart';
-import 'package:journal/views/statistics.dart';
+import 'package:journal/router.dart';
 import 'package:journal/widgets/empty_state.dart';
-import 'package:journal/views/details.dart';
-import 'package:journal/views/editor.dart';
-import 'package:journal/views/list.dart';
-import 'package:journal/views/onboarding.dart';
-import 'package:journal/views/search.dart';
-import 'package:journal/views/settings.dart';
 import 'package:journal/widgets/preflight.dart';
 import 'package:mdi/mdi.dart';
 import 'package:path_provider/path_provider.dart';
@@ -25,10 +19,14 @@ import 'package:shared_preferences/shared_preferences.dart';
 late final Directory platformStorageDir;
 late final File databaseFile;
 late final List database;
+late final File realmDatabaseFile;
+late final List realmDatabase;
 late final SharedPreferences sharedPreferences;
 late final FlutterLocalNotificationsPlugin? notificationsPlugin;
 late final bool? canUseNotifications;
 late List<DreamRecord> dreamList;
+late List<RealmRecord> realmList;
+bool isRealmDatabaseLoaded = false;
 
 /// The version that the app is running on. This should match up with the current version number,
 /// and is shown in About to verify it.
@@ -74,14 +72,44 @@ void main() async {
     await migration;
     sharedPreferences.setString("last-version", "6");
   }
-  //sharedPreferences.setString("last-version", "6");
+  if (appVersion == "6") {
+    print("running database migration: 6 -> 7");
+    runApp(PreflightScreen(
+      child: EmptyState(
+        icon: Icon(Mdi.tagMultiple),
+        text: Text("An optional feature is being checked for you. Please wait."),
+        preflight: true,
+      )
+    ));
+    final databaseFile = File(platformStorageDir.absolute.path + "/dreamjournal.json");
+    final List database = jsonDecode(await databaseFile.readAsString());
+    final hasUsedTags = database.any((element) => element["tags"] is List) 
+    || database.any((element) => element["incomplete"] is bool && element["incomplete"] == true);
+    sharedPreferences.setBool("opt-tags", hasUsedTags);
+    sharedPreferences.setString("last-version", "7");
+  }
+  sharedPreferences.setString("last-version", "7");
   databaseFile = File(platformStorageDir.absolute.path + "/dreamjournal.json");
   if (!await databaseFile.exists()) {
     await databaseFile.create(recursive: true);
     await databaseFile.writeAsString("[]");
   }
+  realmDatabaseFile = File(platformStorageDir.absolute.path + "/lldj-realms.json");
+  if (!await realmDatabaseFile.exists()) {
+    await realmDatabaseFile.create(recursive: true);
+    await realmDatabaseFile.writeAsString("[]");
+    // return runApp(PreflightScreen(
+    //   child: EmptyState(
+    //     icon: Icon(Mdi.listStatus),
+    //     text: Text("The PR list should have already been created if the Persistent Realms optional feature is on."),
+    //     preflight: true,
+    //   )
+    // ));
+  }
   if (sharedPreferences.getBool("onboarding-completed") ?? false) {
     database = jsonDecode(await databaseFile.readAsString()) as dynamic; //sharedPreferences.getString("storage-path")!));
+    realmDatabase = jsonDecode(await realmDatabaseFile.readAsString()) as dynamic;
+    isRealmDatabaseLoaded = true;
   }
   final _commentsFolder = Directory(platformStorageDir.absolute.path + "/lldj-comments/");
   if (!await _commentsFolder.exists()) await _commentsFolder.create();
@@ -162,47 +190,10 @@ class MyApp extends StatelessWidget {
         if (permissionDenied) GetPage(name: "/", page: () => EmptyState(
           icon: Icon(Icons.sd_storage_outlined),
           text: Text("Storage permission was denied."),
-        )) else ...[
-          GetPage(name: "/", middlewares: [OnboardingMiddleware()], page: () => DreamListScreen()),
-          GetPage(name: "/settings", page: () => SettingsRoot()),
-          GetPage(name: "/new", middlewares: [OnboardingMiddleware()], page: () => DreamEdit(mode: DreamEditMode.create)),
-          GetPage(name: "/tag", middlewares: [OnboardingMiddleware()], page: () => DreamEdit(mode: DreamEditMode.tag)),
-          GetPage(name: "/edit", middlewares: [OnboardingMiddleware()], page: () => DreamEdit(mode: DreamEditMode.edit, dream: Get.arguments as DreamRecord)),
-          GetPage(name: "/complete", middlewares: [OnboardingMiddleware()], page: () => DreamEdit(mode: DreamEditMode.complete, dream: Get.arguments as DreamRecord)),
-          GetPage(name: "/details", middlewares: [OnboardingMiddleware()], page: () => middleSegment(DreamDetails(Get.arguments as DreamRecord)), transition: Transition.fadeIn, opaque: false),
-          GetPage(name: "/search", middlewares: [OnboardingMiddleware()], page: () => SearchScreen()),
-          GetPage(name: "/stats", middlewares: [OnboardingMiddleware()], page: () => middleSegment(StatisticsScreen()), transition: Transition.fadeIn, opaque: false),
-          GetPage(name: "/onboarding", page: () => OnboardingScreen()),
-          GetPage(name: "/about", page: () => AboutScreen()),
-        ]
+        )) else ...router
       ],
     );
   }
-}
-
-class OnboardingMiddleware extends GetMiddleware {
-  @override
-  RouteSettings? redirect(String? route) {
-    if (!(sharedPreferences.getBool("onboarding-completed") ?? false)) return RouteSettings(name: '/onboarding');
-    else return null;
-  }
-}
-
-Widget middleSegment(Widget child) {
-  return Stack(
-    alignment: Alignment.center,
-    children: [
-      Container(
-        alignment: Alignment.center,
-        color: Colors.black54.withOpacity(0.7),
-      ),
-      Container(
-        child: child,
-        width: 720,
-        alignment: Alignment.topCenter,
-      ),
-    ],
-  );
 }
 
 final purpleGradient = LinearGradient(
@@ -215,5 +206,9 @@ final redGradient = LinearGradient(
 );
 final goldGradient = LinearGradient(
   colors: [Colors.amber, Colors.orange], 
+  transform: GradientRotation(1.5*pi)
+);
+final blueGreenGradient = LinearGradient(
+  colors: [Colors.blue, Colors.green], 
   transform: GradientRotation(1.5*pi)
 );

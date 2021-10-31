@@ -54,7 +54,20 @@ class OptionalFeaturesSettingsScreen extends StatelessWidget {
             "none": "Off"
           },
           defaultKey: "none",
-        )
+        ),
+        Settings.SwitchSettingsTile(
+          title: "Persistent Realms",
+          subtitle: "PRs for short. An intentionally recurring or continuing setting or dream. Comparable to a Minecraft world. "
+          "Use this feature to keep track of your PRs and the dreams in it.",
+          settingKey: "opt-realms",
+          defaultValue: false,
+        ),
+        Settings.SwitchSettingsTile(
+          title: "Tags",
+          subtitle: "\"Tag\" your dreams to remember to journal them later more thoroughly.",
+          settingKey: "opt-tags",
+          defaultValue: false,
+        ),
       ]
     );
   }
@@ -94,6 +107,11 @@ abstract class OptionalFeatures {
   sharedPreferences.getString("opt-plotlines") == "expandable" ? PlotlineTypes.EXPANDABLE
   : sharedPreferences.getString("opt-plotlines") == "slider" ? PlotlineTypes.SLIDER
   : PlotlineTypes.NONE;
+  /// Whether to show the Persistent Realms page, filter, and dream editor page.
+  /// Does not affect the PR label on dreams, but it does disable the link.
+  static get realms => sharedPreferences.getBool("opt-realms") ?? false;
+  /// The Tags feature. Really just toggles the button to tag new stuff.
+  static get tags => sharedPreferences.getBool("opt-tags") ?? false;
 }
 
 enum PlotlineTypes {
