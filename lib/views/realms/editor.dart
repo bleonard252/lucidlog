@@ -182,6 +182,14 @@ class _RealmEditState extends State<RealmEdit> {
       //   setState(() {});
       // },
       onDone: () async {
+        // == CHECK
+        if (titleController.value.text.isEmpty) return await Get.dialog(AlertDialog(
+          title: Text("Title missing"),
+          content: Text("You must title PRs. What better way to identify them?"),
+          actions: [TextButton(child: Padding(padding: const EdgeInsets.all(8.0), child: Text("OK")), onPressed: () => Get.back())],
+        ));
+
+        // == SAVE
         final _id = widget.realm?.id ?? ObjectId().hexString;
         var newData = {
           "_id": _id,
