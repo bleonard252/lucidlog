@@ -67,6 +67,11 @@ class _RealmEditState extends State<RealmEdit> {
                           ],
                         ));
                         if (!_do) return;
+                        database.where((element) => element["realm"] == widget.realm?.id).forEach((element) {
+                          final i = database.indexOf(element);
+                          database[i]["realm"] = null;
+                          database[i]["realm_canon"] = null;
+                        });
                         await widget.realm?.delete();
                         Get.offAllNamed("/");
                       },
