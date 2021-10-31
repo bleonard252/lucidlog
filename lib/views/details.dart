@@ -46,9 +46,9 @@ class DreamDetails extends StatelessWidget {
       ? sharedPreferences.getString("datetime-format") : DateTimeFormats.commonLogFormat;
     var _nightFormat = sharedPreferences.containsKey("night-format")
       ? sharedPreferences.getString("night-format") ?? "M j" : "M j";
-    return Material(
-      color: Get.theme.canvasColor,
-      child: Container(
+    return Scaffold(
+      backgroundColor: Get.theme.canvasColor,
+      body: Container(
         width: 640,
         alignment: Alignment.topCenter,
         child: SingleChildScrollView(child: Column(
