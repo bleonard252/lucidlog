@@ -24,18 +24,16 @@ class RealmDetails extends StatelessWidget {
 
   RealmDetails(this.realm, {Key? key}) : super(key: key);
 
-  // List<String> calculateCounters() {
-  //   assert(list != null && list != [], "Counters must be enabled and list must be given");
-  //   List<String> output = [];
-  //   output.add("Dream "+(list!.lastIndexOf(dream)+1).toString());
-  //   if (dream.lucid) output.add("LD "+(list!.lucids.lastIndexOf(dream)+1).toString());
-  //   if (OptionalFeatures.wildDistinction && dream.wild)
-  //     output.add("WILD "+(list!.wilds.indexOf(dream)+1).toString());
-  //   if (list!.sameNight(as: dream).length > 1) 
-  //     output.add("Dream ${list!.sameNight(as: dream).indexOf(dream)+1} of ${list!.sameNight(as: dream).length} of the night");
-  //   // TODO: streaks!
-  //   return output;
-  // }
+  List<String> calculateCounters() {
+    assert(dreams != [], "Counters must be enabled and list must be given");
+    List<String> output = [];
+    output.add((dreams.length).toString()+" dreams total");
+    if (dreams.where((element) => element.lucid).isNotEmpty)
+      output.add(dreams.where((element) => element.lucid).length.toString()+" lucid dreams");
+    if (dreams.where((element) => element.realmCanon).isNotEmpty)
+      output.add(dreams.where((element) => element.realmCanon).length.toString()+" canon dreams");
+    return output;
+  }
   
   @override
   Widget build(BuildContext context) {
@@ -227,12 +225,12 @@ class RealmDetails extends StatelessWidget {
                                   title: Text("Not founded yet"),
                                   subtitle: Text("Add a dream to this PR to \"found\" it!", 
                                     maxLines: 1, overflow: TextOverflow.ellipsis, softWrap: false)
+                                ),
+                                if (OptionalFeatures.counters) ListTile(
+                                  leading: Icon(Mdi.clockOutline),
+                                  title: Text("Counters"),
+                                  subtitle: Text(calculateCounters().join(", ")),
                                 )
-                                // if (OptionalFeatures.counters) ListTile(
-                                //   leading: Icon(Mdi.clockOutline),
-                                //   title: Text("Counters"),
-                                //   subtitle: Text(calculateCounters().join(", ")),
-                                // )
                               ])
                             ),
                           ),
