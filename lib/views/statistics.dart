@@ -1,6 +1,7 @@
 import "package:flutter/material.dart";
 import 'package:journal/main.dart';
 import 'package:journal/views/details.dart';
+import 'package:journal/views/optional_features.dart';
 import 'package:journal/widgets/gradienticon.dart';
 import 'package:mdi/mdi.dart';
 
@@ -30,6 +31,12 @@ class StatisticsScreen extends StatelessWidget {
             leading: GradientIcon(Mdi.weatherLightning, 24.0, goldGradient),
             title: Text("Wake-Induced Lucid Dreams: ${dreamList.wilds.length}"),
             subtitle: Text("Dream-Induced Lucid Dreams: ${dreamList.where((e) => e.lucid && !e.wild).length}"),
+            //isThreeLine: true,
+          ),
+          if (OptionalFeatures.realms) ListTile(
+            leading: GradientIcon(Icons.public, 24.0, blueGreenGradient),
+            title: Text("Persistent Realms: ${realmList.length}"),
+            subtitle: Text("Dreams in PRs: ${dreamList.where((e) => e.realm?.isNotEmpty ?? false).length}"),
             //isThreeLine: true,
           ),
         ],
