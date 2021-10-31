@@ -280,19 +280,32 @@ class _DreamEditState extends State<DreamEdit> {
                 final _bodyController = event["bc"] ?? TextEditingController(text: event["body"] ?? "No body! Whoops");
                 plot[plot.indexOf(event)]["bc"] = _bodyController;
                 return Column(children: [
-                  TextField(
-                    controller: _titleController,
-                    onChanged: (newValue) {
-                      final index = plot.indexOf(event);
-                      plot[index]["subtitle"] = newValue;
-                      setState(() {});
-                    },
-                    decoration: InputDecoration(
-                      labelText: "Subtitle",
-                      hintText: "Subtitles help you identify scenes or events.",
-                    ),
-                    keyboardAppearance: Brightness.dark,
-                    keyboardType: TextInputType.text,
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: _titleController,
+                          onChanged: (newValue) {
+                            final index = plot.indexOf(event);
+                            plot[index]["subtitle"] = newValue;
+                            setState(() {});
+                          },
+                          decoration: InputDecoration(
+                            labelText: "Subtitle",
+                            hintText: "Subtitles help you identify scenes or events.",
+                          ),
+                          keyboardAppearance: Brightness.dark,
+                          keyboardType: TextInputType.text,
+                        ),
+                      ),
+                      Tooltip(
+                        message: "Remove",
+                        child: IconButton(
+                          icon: Icon(Icons.close),
+                          onPressed: () => setState(() => plot.remove(event)),
+                        ),
+                      )
+                    ],
                   ),
                   TextField(
                     controller: _bodyController,

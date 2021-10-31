@@ -133,18 +133,13 @@ class DreamDetails extends StatelessWidget {
                       softLineBreak: true,
                     )
                   ),
-                  FutureBuilder(
-                    future: dream.plotFile.exists(),
-                    builder: (ctx, snap) => snap.hasData && snap.data == true ? Flexible(
-                      fit: FlexFit.loose,
-                      child: Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: PlotlineWidget(dream: dream)
-                      ),
-                    ) : Container()
-                  )
                 ])
               )
+            ),
+            FutureBuilder(
+              future: dream.plotFile.exists(),
+              builder: (ctx, snap) => snap.hasData && snap.data == true 
+              ? PlotlineWidget(dream: dream) : Container()
             ),
             if (dream.tags.isNotEmpty) Container(
               padding: const EdgeInsets.symmetric(vertical: 4),
