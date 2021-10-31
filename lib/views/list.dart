@@ -169,7 +169,7 @@ class _DreamListScreenState extends State<DreamListScreen> {
             //     color: Get.theme.accentColor,
             //   ),
             // ),
-            Tooltip(
+            if (OptionalFeatures.tags) Tooltip(
               message: "Tag a dream",
               child: IconButton(
                 icon: Icon(Icons.tag),

@@ -10,7 +10,6 @@ import 'package:journal/db/dream.dart';
 import 'package:journal/db/realm.dart';
 import 'package:journal/migrations/databasev6.dart';
 import 'package:journal/router.dart';
-import 'package:journal/views/optional_features.dart';
 import 'package:journal/widgets/empty_state.dart';
 import 'package:journal/widgets/preflight.dart';
 import 'package:mdi/mdi.dart';
@@ -73,9 +72,23 @@ void main() async {
     await migration;
     sharedPreferences.setString("last-version", "6");
   }
-  // TODO: add a migration here to keep Tags on if the user has used it
-  // v6 -> v7
-  sharedPreferences.setString("last-version", "7 dev");
+  if (appVersion == "6") {
+    print("running database migration: 6 -> 7");
+    runApp(PreflightScreen(
+      child: EmptyState(
+        icon: Icon(Mdi.tagMultiple),
+        text: Text("An optional feature is being checked for you. Please wait."),
+        preflight: true,
+      )
+    ));
+    final databaseFile = File(platformStorageDir.absolute.path + "/dreamjournal.json");
+    final List database = jsonDecode(await databaseFile.readAsString());
+    final hasUsedTags = database.any((element) => element["tags"] is List) 
+    || database.any((element) => element["incomplete"] is bool && element["incomplete"] == true);
+    sharedPreferences.setBool("opt-tags", hasUsedTags);
+    sharedPreferences.setString("last-version", "7");
+  }
+  sharedPreferences.setString("last-version", "7");
   databaseFile = File(platformStorageDir.absolute.path + "/dreamjournal.json");
   if (!await databaseFile.exists()) {
     await databaseFile.create(recursive: true);
