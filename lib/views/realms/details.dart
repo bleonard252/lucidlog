@@ -242,7 +242,7 @@ class RealmDetails extends StatelessWidget {
                         ]
                       ),
                       dreams.length > 0 ? ListView.builder(
-                        itemBuilder: (_, i) => DreamEntry(dream: dreams[i], list: dreams),
+                        itemBuilder: (_, i) => DreamEntry(dream: dreams[i], list: dreams, showCanonStatus: true),
                         itemCount: dreams.length,
                       ) : Center(child: EmptyState(
                         icon: Icon(Mdi.textBoxPlusOutline),

@@ -205,9 +205,10 @@ class _Padding extends MaterialStateProperty<EdgeInsetsGeometry> {
 
 class DreamEntry extends StatelessWidget {
   final CanBeSearchResult dream;
+  final bool showCanonStatus;
   final List<DreamRecord>? list;
 
-  DreamEntry({Key? key, required this.dream, this.list}) : super(key: key);
+  DreamEntry({Key? key, required this.dream, this.list, this.showCanonStatus = false}) : super(key: key);
   
   @override
   Widget build(BuildContext context) {
@@ -239,7 +240,13 @@ class DreamEntry extends StatelessWidget {
         title: Text(dream.forgotten && dream.title == ""
             ? "No dream logged"
             : dream.title),
-        subtitle: Text(dream.body, maxLines: 5, overflow: TextOverflow.fade),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (showCanonStatus && !dream.realmCanon) Text("Not canon", style: Get.textTheme.caption?.copyWith(fontStyle: FontStyle.italic, color: Colors.amber)),
+            Text(dream.body, maxLines: 5, overflow: TextOverflow.fade),
+          ],
+        ),
         // leading: dream.lucid
         //     ? dream.wild
         //         ? GradientIcon(Mdi.weatherLightning, 24, goldGradient)
