@@ -27,6 +27,7 @@ late final bool? canUseNotifications;
 late List<DreamRecord> dreamList;
 late List<RealmRecord> realmList;
 bool isRealmDatabaseLoaded = false;
+int profileNumber = 1;
 
 /// The version that the app is running on. This should match up with the current version number,
 /// and is shown in About to verify it.
@@ -42,11 +43,17 @@ void main() async {
   if (!sharedPreferences.containsKey("datetime-format")) sharedPreferences.setString("datetime-format", DateTimeFormats.commonLogFormat);
   if (sharedPreferences.getString("datetime-format") == "american") sharedPreferences.setString("datetime-format", DateTimeFormats.commonLogFormat);
   //final _androidStorageOne = Directory("/storage/emulated/0/Documents");
-  platformStorageDir = GetPlatform.isAndroid ? ((await getExternalStorageDirectories(type: StorageDirectory.documents)) ?? [])[0]
+  profileNumber = sharedPreferences.getInt("profile") ?? 1;
+  var _platformStorageDir = GetPlatform.isAndroid ? ((await getExternalStorageDirectories(type: StorageDirectory.documents)) ?? [])[0]
     : GetPlatform.isLinux ? await getApplicationDocumentsDirectory()
     : GetPlatform.isIOS ? await getApplicationDocumentsDirectory()
     : GetPlatform.isWindows ? await getApplicationDocumentsDirectory()
     : await getApplicationSupportDirectory();
+  final _tempPSD = Directory(_platformStorageDir.absolute.path + "/lldj-temp-profile/");
+  if (await _tempPSD.exists()) _tempPSD.delete(recursive: true);
+  if (profileNumber == 1) platformStorageDir = Directory(_platformStorageDir.absolute.path);
+  else if (profileNumber == 0) platformStorageDir = _tempPSD;
+  else platformStorageDir = Directory(_platformStorageDir.absolute.path + "/lldj-profile-$profileNumber/");
   /// Migrations which have been removed should be added here.
   const unsupportedVersions = ["4"];
   if (unsupportedVersions.contains(appVersion)) {
@@ -88,7 +95,7 @@ void main() async {
     sharedPreferences.setBool("opt-tags", hasUsedTags);
     sharedPreferences.setString("last-version", "7");
   }
-  sharedPreferences.setString("last-version", "7");
+  sharedPreferences.setString("last-version", "8 dev");
   databaseFile = File(platformStorageDir.absolute.path + "/dreamjournal.json");
   if (!await databaseFile.exists()) {
     await databaseFile.create(recursive: true);
