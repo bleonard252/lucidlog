@@ -6,6 +6,7 @@ import 'package:journal/views/about.dart';
 import 'package:journal/views/details.dart';
 import 'package:journal/views/editor.dart';
 import 'package:journal/views/list.dart';
+import 'package:journal/views/neweditor.dart';
 import 'package:journal/views/onboarding.dart';
 import 'package:journal/views/realms/details.dart';
 import 'package:journal/views/realms/editor.dart';
@@ -19,7 +20,8 @@ import 'db/dream.dart';
 final router = [
   GetPage(name: "/", middlewares: [OnboardingMiddleware()], page: () => DreamListScreen()),
   GetPage(name: "/settings", page: () => SettingsRoot()),
-  GetPage(name: "/dreams/new", middlewares: [OnboardingMiddleware()], page: () => DreamEdit(mode: DreamEditMode.create)),
+  //GetPage(name: "/dreams/new", middlewares: [OnboardingMiddleware()], page: () => DreamEdit(mode: DreamEditMode.create)),
+  GetPage(name: "/dreams/new", middlewares: [OnboardingMiddleware()], page: () => DreamEditor(mode: DreamEditMode.create)),
   GetPage(name: "/dreams/tag", middlewares: [OnboardingMiddleware()], page: () => DreamEdit(mode: DreamEditMode.tag)),
   GetPage(name: "/dreams/edit", middlewares: [OnboardingMiddleware()], page: () => DreamEdit(mode: DreamEditMode.edit, dream: Get.arguments as DreamRecord)),
   GetPage(name: "/dreams/complete", middlewares: [OnboardingMiddleware()], page: () => DreamEdit(mode: DreamEditMode.complete, dream: Get.arguments as DreamRecord)),
