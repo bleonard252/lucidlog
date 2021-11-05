@@ -231,7 +231,7 @@ class EditorRightPaneButton extends StatelessWidget {
       contentPadding: listTile.contentPadding,
       dense: listTile.dense,
       enableFeedback: listTile.enableFeedback,
-      enabled: true, //listTile.enabled,
+      enabled: listTile.enabled,
       focusColor: listTile.focusColor,
       focusNode: listTile.focusNode,
       horizontalTitleGap: listTile.horizontalTitleGap,

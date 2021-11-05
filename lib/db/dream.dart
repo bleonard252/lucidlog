@@ -75,7 +75,9 @@ class DreamRecord with CanBeSearchResult implements RecordWithId {
   /// If it is a lucid dream, whether or not it was wake-induced.
   // @Deprecated("Use type instead.")
   // bool get wild => _document["wild"] ?? false;
-  bool get wild => this.methods.contains("WILD") || this.methods.contains("SSILD") || methods.contains("DEILD");
+  bool get wild => isWild(this.methods);
+
+  static isWild(List methods) => methods.contains("WILD") || methods.contains("SSILD") || methods.contains("DEILD");
   // set wild(bool value) => _update(_document, {"wild": value});
 
   /// If the dream was forgotten or otherwise not remembered with much integrity.

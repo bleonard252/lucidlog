@@ -32,12 +32,14 @@ class DreamEditor extends StatelessWidget {
         "body": TextEditingController(text: dream?.body ?? ""),
         "timestamp": dream?.timestamp ?? DateTime.now(),
         "lucid": dream?.lucid ?? false,
+        "wild": dream?.wild ?? false,
         "forgotten": dream?.forgotten ?? false,
         "tags": dream?.tags ?? [],
         "methods": dream?.methods ?? [],
         "_isDreamInRealm": (dream?.realm?.isNotEmpty ?? false) ? true : false,
         "realm": dream?.realm,
-        "realm_canon": dream?.realmCanon
+        "realm_canon": dream?.realmCanon ?? true,
+        "plot": dream?.plotFile.existsSync() ?? false ? jsonDecode(dream!.plotFile.readAsStringSync()) : []
       },
       onSave: (values) async {
         // == CHECK
@@ -81,11 +83,11 @@ class DreamEditor extends StatelessWidget {
         };
         final plotFile = File(platformStorageDir.absolute.path + "/lldj-plotlines/" + (newData["_id"] as String) + ".json");
         if (OptionalFeatures.plotlines != PlotlineTypes.NONE) {
-          if (values["plot"] != []) await plotFile.writeAsString(jsonEncode(values["plot"].map<Map<String, String?>>((e) => {
-            "body": e["body"],
-            "subtitle": e["subtitle"]
+          if (values["plot"].isNotEmpty) await plotFile.writeAsString(jsonEncode(values["plot"].map<Map<String, String?>>((e) => {
+            "body": e["body"] as String?,
+            "subtitle": e["subtitle"] as String?,
           }).toList()));
-          else if (values["plot"] == [] && await plotFile.exists()) {
+          else if (values["plot"].isEmpty && await plotFile.exists()) {
             plotFile.delete();
           }
         }
@@ -97,37 +99,33 @@ class DreamEditor extends StatelessWidget {
         Get.offAllNamed("/");
         return false;
       },
-      leftSide: (context) => [
+      leftSide: (context) {final editor = BaseEditor.of(context)!; return [
         Padding(
           padding: const EdgeInsets.only(top: 12.0),
           child: EditorRightPaneButton(ListTile(
             title: Text("Body"),
-          ), "body"),
+            subtitle: editor.values["title"].value.text.isNotEmpty
+            ? Text(editor.values["title"].value.text) : Text("No title given yet"),
+          ), "body")
         ),
         ListTile(
           title: Text("Date and Time"),
-          // onDateSelected: (value) {dateValue = value; setState(() {});}, 
-          // selectedDate: dateValue,
-          // mode: DateTimeFieldPickerMode.dateAndTime,
-          // decoration: InputDecoration(
-          //   labelText: "Date and time"
-          // ),
           trailing: Icon(Mdi.calendarEdit),
-          subtitle: Text((BaseEditor.of(context)?.values["timestamp"] as DateTime).format(_dateFormat ?? DateTimeFormats.commonLogFormat)),
+          subtitle: Text((editor.values["timestamp"] as DateTime).format(_dateFormat ?? DateTimeFormats.commonLogFormat)),
           onTap: () async {
             var date = await showDatePicker(
               context: context,
-              initialDate: BaseEditor.of(context)?.values["timestamp"],
+              initialDate: editor.values["timestamp"],
               firstDate: DateTime.fromMillisecondsSinceEpoch(0),
               lastDate: DateTime(3000)
             );
             if (date == null) return;
             var time = await showTimePicker(
               context: context,
-              initialTime: TimeOfDay.fromDateTime(BaseEditor.of(context)?.values["timestamp"]),
+              initialTime: TimeOfDay.fromDateTime(editor.values["timestamp"]),
             );
             if (time == null) return;
-            BaseEditor.of(context)?.setValue("timestamp", date.add(Duration(hours: time.hour, minutes: time.minute)));
+            editor.setValue("timestamp", date.add(Duration(hours: time.hour, minutes: time.minute)));
           },
         ),
         EditorToggleButton(
@@ -144,8 +142,44 @@ class DreamEditor extends StatelessWidget {
           valueKey: "wild",
           title: Text("Wake-initiated"),
           subtitle: Text("You used WILD, SSILD, or a similar technique and became lucid from it."),
-          enabled: BaseEditor.of(context)?.values["lucid"] ?? false
+          enabled: editor.values["lucid"] ?? false
+        ) else if (OptionalFeatures.rememberMethods) EditorRightPaneButton(ListTile(
+          title: Text("Techniques used"),
+          subtitle: Text((editor.values["methods"].length ?? 0).toString()
+          + " technique${(editor.values["methods"].length ?? 0) == 1 ? "" : "s"} used" 
+          + (DreamRecord.isWild(editor.values["methods"] ?? []) ? "; Wake-initiated" : ""))
+        ), "methods"),
+        if (OptionalFeatures.realms) ...[
+          Padding(
+          // Used this as a sample header, comment it out until it's needed
+          padding: const EdgeInsets.all(8.0).copyWith(top: 24.0),
+          child: Row(
+            children: [
+              Text(
+                "PERSISTENT REALM", // Protip: use Dismissable widgets for these items!
+                style: TextStyle(color: Get.theme.primaryColor, fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
         ),
+          EditorToggleButton(
+            valueKey: "_isDreamInRealm",
+            title: Text("In persistent realm"),
+          ),
+          EditorToggleButton(
+            title: Text("Canon to persistent realm"),
+            subtitle: Text("Turn this off if the dream took place in the PR world, but you didn't want it to."),
+            valueKey: "realm_canon",
+            enabled: editor.values["_isDreamInRealm"] ?? false,
+          ),
+          EditorRightPaneButton(ListTile(
+            title: Text("Choose the PR"),
+            subtitle: editor.values["realm"]?.isNotEmpty == true ? 
+            Text(realmList.firstWhere((element) => element.id == editor.values["realm"]).title) : Text("No PR chosen"),
+            enabled: editor.values["_isDreamInRealm"] ?? false,
+          ),
+          "realm"),
+        ],
         if (OptionalFeatures.plotlines != PlotlineTypes.NONE) Padding(
           // Used this as a sample header, comment it out until it's needed
           padding: const EdgeInsets.all(8.0).copyWith(top: 24.0),
@@ -157,7 +191,10 @@ class DreamEditor extends StatelessWidget {
               ),
               Expanded(child: Container()),
               IconButton(
-                onPressed: () => {},
+                onPressed: () => editor.setValue("plot",
+                  (BaseEditor.of(context)!.values["plot"] as List)
+                  ..add({})
+                ),
                 icon: Icon(Icons.add),
                 splashRadius: 16,
                 padding: EdgeInsets.zero,
@@ -166,7 +203,7 @@ class DreamEditor extends StatelessWidget {
             ],
           ),
         ),
-      ],
+      ];},
       leftSideTitle: Text("Journal a Dream"),
       rightSide: (context, pageName) {
         if (pageName == "body") return Container(
@@ -185,7 +222,7 @@ class DreamEditor extends StatelessWidget {
                 ),
                 keyboardAppearance: Brightness.dark,
                 keyboardType: TextInputType.text,
-                maxLines: 1
+                maxLines: 1,
               ),
               Expanded(
                 child: TextField(
@@ -216,9 +253,58 @@ class DreamEditor extends StatelessWidget {
             ],
           ),
         );
+        if (pageName == "realm") return Builder(
+          builder: (context) {
+            final _state = BaseEditor.of(context)!;
+            final _value = _state.values["realm"];
+            return ListView.builder(
+              shrinkWrap: true,
+              itemBuilder: (_, i) => realmList[i].title == "" ? Container() : ListTile(
+                selected: _value == realmList[i].id,
+                title: Text(realmList[i].title),
+                onTap: () => _state.setValue("realm", realmList[i].id),
+              ),
+              itemCount: realmList.length,
+            );
+          }
+        );
+        if (pageName == "methods") return Builder(
+          builder: (context) {
+            final _state = BaseEditor.of(context)!;
+            List methods = _state.values["methods"];
+            return ListView(
+              children: [
+                if (OptionalFeatures.wildDistinction) CheckboxListTile(
+                  activeColor: Colors.amber,
+                  checkColor: Get.theme.canvasColor,
+                  value: methods.contains("WILD"), 
+                  onChanged: (x) => _state.setValue("methods", x ?? false 
+                  ? (methods..add("WILD"))
+                  : (methods..remove("WILD"))),
+                  title: Text("WILD", style: TextStyle(color: Colors.amber)),
+                ),
+                for (var i in [...sharedPreferences.getStringList("ld-methods") ?? [], ...methods].toSet())
+                if ((OptionalFeatures.wildDistinction && i != "WILD") || !OptionalFeatures.wildDistinction) CheckboxListTile(
+                  activeColor: Get.theme.primaryColor,
+                  checkColor: Get.theme.canvasColor,
+                  value: methods.contains(i), 
+                  onChanged: (x) => _state.setValue("methods", x ?? false 
+                  ? (methods..add(i))
+                  : (methods..remove(i))),
+                  title: Text(i, style: TextStyle(
+                    // Gray out techniques that have been removed from the list
+                    color: Colors.white.withAlpha(sharedPreferences.getStringList("ld-methods")?.contains(i)??false ? 255 : 127))
+                  ),
+                )
+              ],
+            );
+          }
+        );
       },
       rightSideTitle: (pageName) {
         if (pageName == "body") return Text("Body");
+        if (pageName == "realm") return Text("Select a PR");
+        if (pageName == "methods") return Text("Techniques");
       }
     );
   }
