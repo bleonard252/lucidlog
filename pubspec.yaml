@@ -44,6 +44,9 @@ dependencies:
   tar: ^0.5.1
   flutter:
     sdk: flutter
+  simple_markdown_editor: ^0.1.7
+  # At some point, fork and update this:
+  # https://github.com/ammaratef45/flutter_markdown_editor
 
 
   # The following adds the Cupertino Icons font to your application.

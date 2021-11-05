@@ -12,6 +12,7 @@ import 'package:journal/widgets/editor.dart';
 import 'package:date_time_format/date_time_format.dart';
 import 'package:mdi/mdi.dart';
 import 'package:objectdb/objectdb.dart';
+import 'package:simple_markdown_editor/simple_markdown_editor.dart';
 
 import '../main.dart';
 
@@ -25,6 +26,7 @@ class DreamEditor extends StatelessWidget {
     var _dateFormat = sharedPreferences.containsKey("datetime-format")
       ? sharedPreferences.getString("datetime-format") : DateTimeFormats.commonLogFormat;
     return BaseEditor(
+      defaultPage: "body",
       initValues: () => {
         "title": TextEditingController(text: dream?.title ?? ""),
         "body": TextEditingController(text: dream?.body ?? ""),
@@ -98,22 +100,9 @@ class DreamEditor extends StatelessWidget {
       leftSide: (context) => [
         Padding(
           padding: const EdgeInsets.only(top: 12.0),
-          child: ListTile(
-            title: Text("Title"),
-            subtitle: TextField(
-              controller: BaseEditor.of(context)?.values["title"],
-              decoration: InputDecoration(
-                //labelText: "Title",
-                hintText: "Titles help you distinguish dreams.",
-                //contentPadding: EdgeInsets.zero
-                //isCollapsed: true,
-                isDense: true
-              ),
-              keyboardAppearance: Brightness.dark,
-              keyboardType: TextInputType.text,
-              maxLines: 1
-            ),
-          ),
+          child: EditorRightPaneButton(ListTile(
+            title: Text("Body"),
+          ), "body"),
         ),
         ListTile(
           title: Text("Date and Time"),
@@ -141,36 +130,90 @@ class DreamEditor extends StatelessWidget {
             BaseEditor.of(context)?.setValue("timestamp", date.add(Duration(hours: time.hour, minutes: time.minute)));
           },
         ),
-        EditorRightPaneButton(ListTile(
-          title: Text("Body"),
-        ), "body"),
+        EditorToggleButton(
+          valueKey: "forgotten",
+          title: Text("Insufficient Recall"),
+          subtitle: Text("You forgot or nearly forgot the dream."),
+        ),
         EditorToggleButton(
           valueKey: "lucid",
           title: Text("Lucid Dream"),
           subtitle: Text("You were aware that you were dreaming."),
-        )
+        ),
+        if (OptionalFeatures.wildDistinction && !OptionalFeatures.rememberMethods) EditorToggleButton(
+          valueKey: "wild",
+          title: Text("Wake-initiated"),
+          subtitle: Text("You used WILD, SSILD, or a similar technique and became lucid from it."),
+          enabled: BaseEditor.of(context)?.values["lucid"] ?? false
+        ),
+        if (OptionalFeatures.plotlines != PlotlineTypes.NONE) Padding(
+          // Used this as a sample header, comment it out until it's needed
+          padding: const EdgeInsets.all(8.0).copyWith(top: 24.0),
+          child: Row(
+            children: [
+              Text(
+                "PLOTLINES", // Protip: use Dismissable widgets for these items!
+                style: TextStyle(color: Get.theme.primaryColor, fontWeight: FontWeight.bold),
+              ),
+              Expanded(child: Container()),
+              IconButton(
+                onPressed: () => {},
+                icon: Icon(Icons.add),
+                splashRadius: 16,
+                padding: EdgeInsets.zero,
+                constraints: BoxConstraints.tightForFinite(height: 24),
+              )
+            ],
+          ),
+        ),
       ],
       leftSideTitle: Text("Journal a Dream"),
       rightSide: (context, pageName) {
         if (pageName == "body") return Container(
           padding: const EdgeInsets.all(8.0),
           alignment: Alignment.topLeft,
-          child: TextField(
-            controller: BaseEditor.of(context)?.values["body"], 
-            decoration: InputDecoration(
-              alignLabelWithHint: true,
-              labelText: "Summary",
-              hintText: "Write more about a dream!",
-              border: InputBorder.none
-            ),
-            keyboardAppearance: Brightness.dark,
-            keyboardType: TextInputType.multiline,
-            minLines: null,
-            expands: true,
-            maxLines: null,
-            buildCounter: (BuildContext context, {required int currentLength, required bool isFocused, required int? maxLength}) {
-              if (isFocused) return Text(currentLength.toString());
-            }
+          child: Column(
+            mainAxisSize: MainAxisSize.max,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              TextField(
+                controller: BaseEditor.of(context)?.values["title"],
+                decoration: InputDecoration(
+                  labelText: "Title",
+                  hintText: "Titles help you distinguish dreams.",
+                ),
+                keyboardAppearance: Brightness.dark,
+                keyboardType: TextInputType.text,
+                maxLines: 1
+              ),
+              Expanded(
+                child: TextField(
+                  controller: BaseEditor.of(context)?.values["body"],
+                  decoration: InputDecoration(
+                    alignLabelWithHint: true,
+                    labelText: "Summary",
+                    hintText: "Write more about a dream!",
+                    border: InputBorder.none
+                  ),
+                  keyboardAppearance: Brightness.dark,
+                  keyboardType: TextInputType.multiline,
+                  minLines: null,
+                  expands: true,
+                  maxLines: null,
+                  buildCounter: (BuildContext context, {required int currentLength, required bool isFocused, required int? maxLength}) {
+                    if (isFocused) return Text(currentLength.toString());
+                  }
+                ),
+              ),
+              // Expanded(
+              //   child: MarkdownFormField(
+              //     enableToolBar: true,
+              //     controller: BaseEditor.of(context)?.values["body"],
+              //     emojiConvert: true,
+              //   )
+              // )
+            ],
           ),
         );
       },

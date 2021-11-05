@@ -13,6 +13,7 @@ class BaseEditor extends StatefulWidget {
   final Widget? emptyRightSide;
   final FutureOr<bool> Function(Map<String, dynamic> values)? onSave;
   final Map<String, dynamic> Function()? initValues;
+  final String? defaultPage;
   BaseEditor({
     Key? key,
     required this.leftSide,
@@ -22,6 +23,7 @@ class BaseEditor extends StatefulWidget {
     this.emptyRightSide,
     this.onSave,
     this.initValues,
+    this.defaultPage
   }) : super(key: key);
 
   @override
@@ -38,6 +40,7 @@ class _BaseEditorState extends State<BaseEditor> {
   void initState() {
     //Future.value(widget.initValues?.call()).then((result) => values = result);
     values = widget.initValues?.call() ?? values;
+    activePage = widget.defaultPage ?? activePage;
     super.initState();
   }
 
@@ -240,7 +243,7 @@ class EditorRightPaneButton extends StatelessWidget {
       mouseCursor: listTile.mouseCursor,
       onLongPress: null,
       onTap: () => BaseEditor.of(context)?.setActivePage(targetPageName),
-      selected: false,
+      selected: BaseEditor.of(context)?.activePage == targetPageName,
       selectedTileColor: listTile.selectedTileColor,
       shape: listTile.shape,
       subtitle: listTile.subtitle,
@@ -257,13 +260,15 @@ class EditorToggleButton extends StatelessWidget {
   final Widget? title;
   final Widget? subtitle;
   final Widget? leading;
+  final bool enabled;
   
   const EditorToggleButton({
     Key? key,
     required this.valueKey,
     this.title,
     this.subtitle,
-    this.leading
+    this.leading,
+    this.enabled = true
   }) : super(key: key);
 
   @override
@@ -272,10 +277,14 @@ class EditorToggleButton extends StatelessWidget {
       title: title,
       subtitle: subtitle,
       leading: leading,
-      trailing: Switch(
+      trailing: enabled ? Switch(
         value: BaseEditor.of(context)?.values[valueKey] ?? false,
         onChanged: (newValue) => BaseEditor.of(context)?.setValue(valueKey, newValue),
+      ) : Switch(
+        value: false,
+        onChanged: (newValue) => false,
       ),
+      enabled: enabled,
       onTap: () => BaseEditor.of(context)?.setValue(valueKey, !(BaseEditor.of(context)?.values[valueKey] ?? false)),
     );
   }

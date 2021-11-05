@@ -106,6 +106,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.2.0"
+  expandable:
+    dependency: transitive
+    description:
+      name: expandable
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "5.0.1"
   external_path:
     dependency: "direct main"
     description:
@@ -198,6 +205,13 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+  font_awesome_flutter:
+    dependency: transitive
+    description:
+      name: font_awesome_flutter
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "9.2.0"
   get:
     dependency: "direct main"
     description:
@@ -471,6 +485,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "5.19.0"
+  simple_markdown_editor:
+    dependency: "direct main"
+    description:
+      name: simple_markdown_editor
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.1.7"
   sky_engine:
     dependency: transitive
     description: flutter
