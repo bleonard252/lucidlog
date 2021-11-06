@@ -17,15 +17,26 @@ import 'package:simple_markdown_editor/simple_markdown_editor.dart';
 
 import '../../main.dart';
 
+// ignore: must_be_immutable
 class RealmEditor extends StatelessWidget {
   final RealmEditMode mode;
   final RealmRecord? realm;
-  const RealmEditor({ Key? key, required this.mode, this.realm }) : super(key: key);
+  late final Map<String, List<Map>> charsethist;
+  bool _charsethistLoaded = false;
+  RealmEditor({ Key? key, required this.mode, this.realm }) : super(key: key);
 
   // PRO-TIP for VS Code: use Fold Level 4 to fold the BaseEditor fields
   // and Fold Level 5 for the children
   @override
   Widget build(BuildContext context) {
+    if (!_charsethistLoaded) {
+      if (realm?.extraFile.existsSync()??false) {
+        charsethist = jsonDecode(realm!.extraFile.readAsStringSync());
+      } else {
+        charsethist = {};
+      }
+      _charsethistLoaded = true;
+    }
     return BaseEditor(
       defaultPage: mode == RealmEditMode.create ? "body" : null,
       initValues: () => {
@@ -40,7 +51,6 @@ class RealmEditor extends StatelessWidget {
           subtitle: editor.values["title"].value.text.isNotEmpty
           ? Text(editor.values["title"].value.text) : Text("No title given yet"),
         ), "body"),
-        // TODO: add character, setting, and history sections
         if (dreamList.isNotEmpty && mode == RealmEditMode.create) EditorRightPaneButton(ListTile(
           title: Text("Add dreams to this PR")
         ), "dreams"),
@@ -67,6 +77,273 @@ class RealmEditor extends StatelessWidget {
             Get.offAllNamed("/");
           },
         ),
+        // TODO: add character, setting, and history sections
+        ...[ // Characters
+          Padding(
+            padding: const EdgeInsets.all(8.0).copyWith(top: 24.0),
+            child: Row(
+              children: [
+                Text(
+                  "CHARACTERS", // Protip: use Dismissable widgets for these items!
+                  style: TextStyle(color: Get.theme.primaryColor, fontWeight: FontWeight.bold),
+                ),
+                Expanded(child: Container()),
+                Padding(
+                  padding: const EdgeInsets.only(right: 8.0),
+                  child: IconButton(
+                    onPressed: () => Get.dialog(AlertDialog(
+                      title: Text("How to best use this list"),
+                      content: Text("Swipe left or right to delete the plot entry.\n"
+                      "Press and hold, then drag up and down to reorder the plot."),
+                      actions: [TextButton(child: Padding(padding: const EdgeInsets.all(8.0), child: Text("OK")), onPressed: () => Get.back())],
+                    )),
+                    icon: Icon(Icons.help_outline),
+                    splashRadius: 16,
+                    padding: EdgeInsets.zero,
+                    constraints: BoxConstraints.tightForFinite(height: 24),
+                  ),
+                ),
+                IconButton(
+                  onPressed: () => editor.setValue("characters",
+                    (editor.values["characters"] as List)
+                    ..add({
+                      "body": TextEditingController(),
+                      "title": TextEditingController()
+                    })
+                  ),
+                  icon: Icon(Mdi.accountPlus),
+                  splashRadius: 16,
+                  padding: EdgeInsets.zero,
+                  constraints: BoxConstraints.tightForFinite(height: 24),
+                )
+              ],
+            ),
+          ),
+          ReorderableListView(
+            shrinkWrap: true,
+            buildDefaultDragHandles: false,
+            children: [
+              for (var character in editor.values["characters"]) Dismissible(
+                key: ObjectKey(character),
+                child: ReorderableDelayedDragStartListener(
+                  index: editor.values["characters"].indexOf(character),
+                  child: EditorRightPaneButton(ListTile(
+                    title: character["title"].value.text.isNotEmpty
+                    ? Text(character["title"].value.text)
+                    : Text("No name given"),
+                    subtitle: character["body"].value.text.isNotEmpty
+                    ? Text(character["body"].value.text, maxLines: 1, overflow: TextOverflow.ellipsis)
+                    : Text("No summary given"),
+                  ), "sub:characters:"+(editor.values["characters"].indexOf(character).toString())),
+                ),
+                background: Container(color:Colors.red, child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: Icon(Icons.delete),
+                ), alignment: Alignment.centerLeft),
+                secondaryBackground: Container(color:Colors.red, child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: Icon(Icons.delete),
+                ), alignment: Alignment.centerRight),
+                onDismissed: (_) {
+                  ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                  final _index = editor.values["characters"].indexOf(character);
+                  editor.setValue("characters", editor.values["characters"]..remove(character));
+                  var name = character["title"].value.text;
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                    content: Text("""The "$name" character has been removed."""),
+                    action: SnackBarAction(
+                      label: "UNDO",
+                      onPressed: () => editor.setValue("characters", editor.values["characters"]..insert(_index, character)),
+                    ),
+                    duration: Duration(seconds: 7),
+                  ));
+                },
+              )
+            ], 
+            onReorder: (oldPos, newPos) {
+              ScaffoldMessenger.of(context).hideCurrentSnackBar();
+              if (oldPos < newPos) newPos -= 1;
+              var characters = editor.values["characters"];
+              final oldItem = characters.removeAt(oldPos);
+              characters.insert(newPos, oldItem);
+              if (editor.activePage?.startsWith("characters") ?? false) editor.setActivePage(null, true);
+              editor.setValue("characters", characters);
+            }
+          )
+        ],
+        ...[ // Settings
+          Padding(
+            padding: const EdgeInsets.all(8.0).copyWith(top: 24.0),
+            child: Row(
+              children: [
+                Text(
+                  "SETTINGS", // Protip: use Dismissable widgets for these items!
+                  style: TextStyle(color: Get.theme.primaryColor, fontWeight: FontWeight.bold),
+                ),
+                Expanded(child: Container()),
+                Padding(
+                  padding: const EdgeInsets.only(right: 8.0),
+                  child: IconButton(
+                    onPressed: () => Get.dialog(AlertDialog(
+                      title: Text("What is a setting?"),
+                      content: Text("A \"setting\" is any place and/or time in which something is set.\n"
+                      "For the purposes of PRs, this is most likely going to be a place of some sort, but it could be tied to a specific time that this place is always/only seen in,"
+                      " such as a holiday-related place or somewhere you only go at night."),
+                      actions: [TextButton(child: Padding(padding: const EdgeInsets.all(8.0), child: Text("OK")), onPressed: () => Get.back())],
+                    )),
+                    icon: Icon(Icons.help_outline),
+                    splashRadius: 16,
+                    padding: EdgeInsets.zero,
+                    constraints: BoxConstraints.tightForFinite(height: 24),
+                  ),
+                ),
+                IconButton(
+                  onPressed: () => editor.setValue("settings",
+                    (editor.values["settings"] as List)
+                    ..add({
+                      "body": TextEditingController(),
+                      "title": TextEditingController()
+                    })
+                  ),
+                  icon: Icon(Mdi.mapMarkerPlus),
+                  splashRadius: 16,
+                  padding: EdgeInsets.zero,
+                  constraints: BoxConstraints.tightForFinite(height: 24),
+                )
+              ],
+            ),
+          ),
+          ReorderableListView(
+            shrinkWrap: true,
+            buildDefaultDragHandles: false,
+            children: [
+              for (var setting in editor.values["settings"]) Dismissible(
+                key: ObjectKey(setting),
+                child: ReorderableDelayedDragStartListener(
+                  index: editor.values["settings"].indexOf(setting),
+                  child: EditorRightPaneButton(ListTile(
+                    title: setting["title"].value.text.isNotEmpty
+                    ? Text(setting["title"].value.text)
+                    : Text("No name given"),
+                    subtitle: setting["body"].value.text.isNotEmpty
+                    ? Text(setting["body"].value.text, maxLines: 1, overflow: TextOverflow.ellipsis)
+                    : Text("No summary given"),
+                  ), "sub:settings:"+(editor.values["settings"].indexOf(setting).toString())),
+                ),
+                background: Container(color:Colors.red, child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: Icon(Icons.delete),
+                ), alignment: Alignment.centerLeft),
+                secondaryBackground: Container(color:Colors.red, child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: Icon(Icons.delete),
+                ), alignment: Alignment.centerRight),
+                onDismissed: (_) {
+                  ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                  final _index = editor.values["settings"].indexOf(setting);
+                  editor.setValue("settings", editor.values["settings"]..remove(setting));
+                  var name = setting["title"].value.text;
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                    content: Text("""The "$name" setting has been removed."""),
+                    action: SnackBarAction(
+                      label: "UNDO",
+                      onPressed: () => editor.setValue("settings", editor.values["settings"]..insert(_index, setting)),
+                    ),
+                    duration: Duration(seconds: 7),
+                  ));
+                },
+              )
+            ], 
+            onReorder: (oldPos, newPos) {
+              ScaffoldMessenger.of(context).hideCurrentSnackBar();
+              if (oldPos < newPos) newPos -= 1;
+              var settings = editor.values["settings"];
+              final oldItem = settings.removeAt(oldPos);
+              settings.insert(newPos, oldItem);
+              if (editor.activePage?.startsWith("settings") ?? false) editor.setActivePage(null, true);
+              editor.setValue("settings", settings);
+            }
+          )
+        ],
+        ...[ // History
+          Padding(
+            padding: const EdgeInsets.all(8.0).copyWith(top: 24.0),
+            child: Row(
+              children: [
+                Text(
+                  "HISTORY", // Protip: use Dismissable widgets for these items!
+                  style: TextStyle(color: Get.theme.primaryColor, fontWeight: FontWeight.bold),
+                ),
+                Expanded(child: Container()),
+                IconButton(
+                  onPressed: () => editor.setValue("history",
+                    (editor.values["history"] as List)
+                    ..add({
+                      "body": TextEditingController(),
+                      "title": TextEditingController()
+                    })
+                  ),
+                  icon: Icon(Mdi.bookPlus),
+                  splashRadius: 16,
+                  padding: EdgeInsets.zero,
+                  constraints: BoxConstraints.tightForFinite(height: 24),
+                )
+              ],
+            ),
+          ),
+          ReorderableListView(
+            shrinkWrap: true,
+            buildDefaultDragHandles: false,
+            children: [
+              for (var event in editor.values["history"]) Dismissible(
+                key: ObjectKey(event),
+                child: ReorderableDelayedDragStartListener(
+                  index: editor.values["history"].indexOf(event),
+                  child: EditorRightPaneButton(ListTile(
+                    title: event["title"].value.text.isNotEmpty
+                    ? Text(event["title"].value.text)
+                    : Text("No name given"),
+                    subtitle: event["body"].value.text.isNotEmpty
+                    ? Text(event["body"].value.text, maxLines: 1, overflow: TextOverflow.ellipsis)
+                    : Text("No summary given"),
+                  ), "sub:history:"+(editor.values["history"].indexOf(event).toString())),
+                ),
+                background: Container(color:Colors.red, child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: Icon(Icons.delete),
+                ), alignment: Alignment.centerLeft),
+                secondaryBackground: Container(color:Colors.red, child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: Icon(Icons.delete),
+                ), alignment: Alignment.centerRight),
+                onDismissed: (_) {
+                  ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                  final _index = editor.values["history"].indexOf(event);
+                  editor.setValue("history", editor.values["history"]..remove(event));
+                  var name = event["title"].value.text;
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                    content: Text("""The "$name" history event has been removed."""),
+                    action: SnackBarAction(
+                      label: "UNDO",
+                      onPressed: () => editor.setValue("history", editor.values["history"]..insert(_index, event)),
+                    ),
+                    duration: Duration(seconds: 7),
+                  ));
+                },
+              )
+            ], 
+            onReorder: (oldPos, newPos) {
+              ScaffoldMessenger.of(context).hideCurrentSnackBar();
+              if (oldPos < newPos) newPos -= 1;
+              var history = editor.values["history"];
+              final oldItem = history.removeAt(oldPos);
+              history.insert(newPos, oldItem);
+              if (editor.activePage?.startsWith("history") ?? false) editor.setActivePage(null, true);
+              editor.setValue("history", history);
+            }
+          )
+        ],
+        
       ];},
       leftSideTitle: Text("Persistent Realm"),
       rightSide: (context, pageName) {
@@ -168,6 +445,51 @@ class RealmEditor extends StatelessWidget {
             ),
           );
         }
+        if (pageName.startsWith("sub:")) {
+          final _parts = pageName.split(":");
+          final type = _parts[1];
+          final i = int.parse(_parts[2]);
+          return Container(
+            padding: const EdgeInsets.all(8.0),
+            alignment: Alignment.topLeft,
+            child: Column(
+              mainAxisSize: MainAxisSize.max,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                TextField(
+                  controller: editor.values[type][i]["title"],
+                  decoration: InputDecoration(
+                    labelText: type == "character" ? "Name" : "Title",
+                    //hintText: "Titles help you distinguish dreams.",
+                  ),
+                  keyboardAppearance: Brightness.dark,
+                  keyboardType: TextInputType.text,
+                  maxLines: 1,
+                ),
+                Expanded(
+                  child: TextField(
+                    controller: editor.values[type][i]["body"],
+                    decoration: InputDecoration(
+                      alignLabelWithHint: true,
+                      labelText: "Summary",
+                      //hintText: "Write more about a dream!",
+                      border: InputBorder.none
+                    ),
+                    keyboardAppearance: Brightness.dark,
+                    keyboardType: TextInputType.multiline,
+                    minLines: null,
+                    expands: true,
+                    maxLines: null,
+                    buildCounter: (BuildContext context, {required int currentLength, required bool isFocused, required int? maxLength}) {
+                      if (isFocused) return Text(currentLength.toString());
+                    }
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
       },
       rightSideTitle: (pageName) {
         if (pageName == "body") return Text("Body");
@@ -195,16 +517,27 @@ class RealmEditor extends StatelessWidget {
         for (var id in values["_dreams"]) {
           database.firstWhere((element) => element["_id"] == id)["realm"] = _id;
         }
-        // final plotFile = File(platformStorageDir.absolute.path + "/lldj-plotlines/" + (newData["_id"] as String) + ".json");
-        // if (OptionalFeatures.plotlines != PlotlineTypes.NONE && isPlotlinesEnabled) {
-        //   if (plot != []) await plotFile.writeAsString(jsonEncode(plot.map<Map<String, String?>>((e) => {
-        //     "body": e["body"],
-        //     "subtitle": e["subtitle"]
-        //   }).toList()));
-        //   else if (plot == [] && await plotFile.exists()) {
-        //     plotFile.delete();
-        //   }
-        // }
+        (() async {
+          final extraFile = File(platformStorageDir.absolute.path + "/lldj-realms/" + (newData["_id"] as String) + ".json");
+          var _condition = (values["characters"] == [] && values["settings"] == [] && values["history"] == []);
+          if (!_condition) await extraFile.writeAsString(jsonEncode({
+            "characters": values["characters"].map<Map<String, String?>>((e) => {
+              "body": e["body"].value.text,
+              "title": e["title"].value.text
+            }).toList(),
+            "settings": values["settings"].map<Map<String, String?>>((e) => {
+              "body": e["body"].value.text,
+              "title": e["title"].value.text
+            }).toList(),
+            "history": values["history"].map<Map<String, String?>>((e) => {
+              "body": e["body"].value.text,
+              "title": e["title"].value.text
+            }).toList(),
+          }));
+          else if (_condition && await extraFile.exists()) {
+            extraFile.delete();
+          }
+        })();
         if (mode == RealmEditMode.create) {
           realmDatabase.add(newData);
         } else {

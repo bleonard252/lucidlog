@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:journal/db/dream.dart' show CanBeSearchResult, DreamRecord, RecordWithId;
 import 'package:journal/main.dart';
 
@@ -50,6 +52,8 @@ class RealmRecord with CanBeSearchResult implements RecordWithId {
     }
     return _list.reversed.toList();
   }
+
+  File get extraFile => File(platformStorageDir.absolute.path + "/lldj-realms/" + id + ".json");
 
   void _update(Map query, Map patch) {
     var index = realmDatabase.indexOf(_document);

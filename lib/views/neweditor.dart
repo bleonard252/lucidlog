@@ -94,7 +94,7 @@ class DreamEditor extends StatelessWidget {
         if (OptionalFeatures.plotlines != PlotlineTypes.NONE) {
           if (values["plot"].isNotEmpty) await plotFile.writeAsString(jsonEncode(values["plot"].map<Map<String, String?>>((e) => {
             "body": e["body"].value.text as String?,
-            "subtitle": e["subtitle"].value.text as String?,
+            "subtitle": e["subtitle"]?.value.text.isNotEmpty ?? false ? e["subtitle"].value.text as String? : null,
           }).toList()));
           else if (values["plot"].isEmpty && await plotFile.exists()) {
             plotFile.delete();
@@ -180,17 +180,16 @@ class DreamEditor extends StatelessWidget {
         ), "methods"),
         if (OptionalFeatures.realms && mode != DreamEditMode.tag) ...[
           Padding(
-          // Used this as a sample header, comment it out until it's needed
-          padding: const EdgeInsets.all(8.0).copyWith(top: 24.0),
-          child: Row(
-            children: [
-              Text(
-                "PERSISTENT REALM", // Protip: use Dismissable widgets for these items!
-                style: TextStyle(color: Get.theme.primaryColor, fontWeight: FontWeight.bold),
-              ),
-            ],
+            padding: const EdgeInsets.all(8.0).copyWith(top: 24.0),
+            child: Row(
+              children: [
+                Text(
+                  "PERSISTENT REALM", // Protip: use Dismissable widgets for these items!
+                  style: TextStyle(color: Get.theme.primaryColor, fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
           ),
-        ),
           EditorToggleButton(
             valueKey: "_isDreamInRealm",
             title: Text("In persistent realm"),
@@ -215,10 +214,25 @@ class DreamEditor extends StatelessWidget {
             child: Row(
               children: [
                 Text(
-                  "PLOTLINES", // Protip: use Dismissable widgets for these items!
+                  "PLOTLINE", // Protip: use Dismissable widgets for these items!
                   style: TextStyle(color: Get.theme.primaryColor, fontWeight: FontWeight.bold),
                 ),
                 Expanded(child: Container()),
+                Padding(
+                  padding: const EdgeInsets.only(right: 8.0),
+                  child: IconButton(
+                    onPressed: () => Get.dialog(AlertDialog(
+                      title: Text("How to best use this list"),
+                      content: Text("Swipe left or right to delete the plot entry.\n"
+                      "Press and hold, then drag up and down to reorder the plot."),
+                      actions: [TextButton(child: Padding(padding: const EdgeInsets.all(8.0), child: Text("OK")), onPressed: () => Get.back())],
+                    )),
+                    icon: Icon(Icons.help_outline),
+                    splashRadius: 16,
+                    padding: EdgeInsets.zero,
+                    constraints: BoxConstraints.tightForFinite(height: 24),
+                  ),
+                ),
                 IconButton(
                   onPressed: () => editor.setValue("plot",
                     (editor.values["plot"] as List)
@@ -235,25 +249,57 @@ class DreamEditor extends StatelessWidget {
               ],
             ),
           ),
-          for (var event in editor.values["plot"]) Dismissible(
-            key: ObjectKey(event), 
-            child: EditorRightPaneButton(ListTile(
-              title: event["subtitle"].value.text.isNotEmpty
-              ? Text(event["subtitle"].value.text)
-              : Text("Scene "+((editor.values["plot"].indexOf(event)+1).toString())),
-              subtitle: event["body"].value.text.isNotEmpty
-              ? Text(event["body"].value.text, maxLines: 1, overflow: TextOverflow.ellipsis)
-              : Text("No summary given"),
-            ), "plot:"+(editor.values["plot"].indexOf(event).toString())),
-            background: Container(color:Colors.red, child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Icon(Icons.delete),
-            ), alignment: Alignment.centerLeft),
-            secondaryBackground: Container(color:Colors.red, child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Icon(Icons.delete),
-            ), alignment: Alignment.centerRight),
-            onDismissed: (_) => editor.setValue("plot", editor.values["plot"]..remove(event)),
+          ReorderableListView(
+            shrinkWrap: true,
+            buildDefaultDragHandles: false,
+            children: [
+              for (var event in editor.values["plot"]) Dismissible(
+                key: ObjectKey(event),
+                child: ReorderableDelayedDragStartListener(
+                  index: editor.values["plot"].indexOf(event),
+                  child: EditorRightPaneButton(ListTile(
+                    title: event["subtitle"].value.text.isNotEmpty
+                    ? Text(event["subtitle"].value.text)
+                    : Text("Scene "+((editor.values["plot"].indexOf(event)+1).toString())),
+                    subtitle: event["body"].value.text.isNotEmpty
+                    ? Text(event["body"].value.text, maxLines: 1, overflow: TextOverflow.ellipsis)
+                    : Text("No summary given"),
+                  ), "plot:"+(editor.values["plot"].indexOf(event).toString())),
+                ),
+                background: Container(color:Colors.red, child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: Icon(Icons.delete),
+                ), alignment: Alignment.centerLeft),
+                secondaryBackground: Container(color:Colors.red, child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: Icon(Icons.delete),
+                ), alignment: Alignment.centerRight),
+                onDismissed: (_) {
+                  ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                  final _index = editor.values["plot"].indexOf(event);
+                  editor.setValue("plot", editor.values["plot"]..remove(event));
+                  var name = event["subtitle"].value.text;
+                  if (name.isEmpty) name = "Scene "+(_index+1).toString();
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                    content: Text("""The "$name" plot event has been removed."""),
+                    action: SnackBarAction(
+                      label: "UNDO",
+                      onPressed: () => editor.setValue("plot", editor.values["plot"]..insert(_index, event)),
+                    ),
+                    duration: Duration(seconds: 7),
+                  ));
+                },
+              )
+            ], 
+            onReorder: (oldPos, newPos) {
+              ScaffoldMessenger.of(context).hideCurrentSnackBar();
+              if (oldPos < newPos) newPos -= 1;
+              var plot = editor.values["plot"];
+              final oldItem = plot.removeAt(oldPos);
+              plot.insert(newPos, oldItem);
+              if (editor.activePage?.startsWith("plot") ?? false) editor.setActivePage(null, true);
+              editor.setValue("plot", plot);
+            }
           )
         ]
       ];},
