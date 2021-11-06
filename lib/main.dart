@@ -95,7 +95,7 @@ void main() async {
     sharedPreferences.setBool("opt-tags", hasUsedTags);
     sharedPreferences.setString("last-version", "7");
   }
-  sharedPreferences.setString("last-version", "8 dev");
+  sharedPreferences.setString("last-version", "8 beta 1");
   databaseFile = File(platformStorageDir.absolute.path + "/dreamjournal.json");
   if (!await databaseFile.exists()) {
     await databaseFile.create(recursive: true);
