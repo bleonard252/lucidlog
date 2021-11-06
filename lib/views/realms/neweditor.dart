@@ -21,9 +21,14 @@ import '../../main.dart';
 class RealmEditor extends StatelessWidget {
   final RealmEditMode mode;
   final RealmRecord? realm;
-  late final Map<String, List<Map>> charsethist;
+  late final charsethist;
   bool _charsethistLoaded = false;
   RealmEditor({ Key? key, required this.mode, this.realm }) : super(key: key);
+
+  mapCharsethist(value) => {
+    "title": TextEditingController(text: value["title"]!),
+    "body": TextEditingController(text: value["body"]!)
+  };
 
   // PRO-TIP for VS Code: use Fold Level 4 to fold the BaseEditor fields
   // and Fold Level 5 for the children
@@ -42,6 +47,9 @@ class RealmEditor extends StatelessWidget {
       initValues: () => {
         "title": TextEditingController(text: realm?.title ?? ""),
         "body": TextEditingController(text: realm?.body ?? ""),
+        "characters": charsethist["characters"]?.map(mapCharsethist).toList() ?? [],
+        "settings": charsethist["settings"]?.map(mapCharsethist).toList() ?? [],
+        "history": charsethist["history"]?.map(mapCharsethist).toList() ?? [],
         "_dreams": [],
         "_hasCompletedInitialFlow": false // mode == RealmEditMode.create
       },
@@ -92,9 +100,9 @@ class RealmEditor extends StatelessWidget {
                   padding: const EdgeInsets.only(right: 8.0),
                   child: IconButton(
                     onPressed: () => Get.dialog(AlertDialog(
-                      title: Text("How to best use this list"),
-                      content: Text("Swipe left or right to delete the plot entry.\n"
-                      "Press and hold, then drag up and down to reorder the plot."),
+                      title: Text("How to best use these lists"),
+                      content: Text("Swipe left or right to delete the entry.\n"
+                      "Press and hold, then drag up and down to reorder the entries."),
                       actions: [TextButton(child: Padding(padding: const EdgeInsets.all(8.0), child: Text("OK")), onPressed: () => Get.back())],
                     )),
                     icon: Icon(Icons.help_outline),
@@ -505,6 +513,30 @@ class RealmEditor extends StatelessWidget {
           ));
           return false;
         }
+        if (values["characters"].any((v) => v["title"].value.text.isEmpty || v["body"].value.text.isEmpty)) {
+          Get.dialog(AlertDialog(
+            title: Text("Character details missing"),
+            content: Text("One of your PR's characters is missing a name or summary."),
+            actions: [TextButton(child: Padding(padding: const EdgeInsets.all(8.0), child: Text("OK")), onPressed: () => Get.back())],
+          ));
+          return false;
+        }
+        if (values["settings"].any((v) => v["title"].value.text.isEmpty || v["body"].value.text.isEmpty)) {
+          Get.dialog(AlertDialog(
+            title: Text("Setting details missing"),
+            content: Text("One of your PR's settings is missing a title or summary."),
+            actions: [TextButton(child: Padding(padding: const EdgeInsets.all(8.0), child: Text("OK")), onPressed: () => Get.back())],
+          ));
+          return false;
+        }
+        if (values["history"].any((v) => v["title"].value.text.isEmpty || v["body"].value.text.isEmpty)) {
+          Get.dialog(AlertDialog(
+            title: Text("Historical event details missing"),
+            content: Text("One of your PR's historical events is missing a title or summary."),
+            actions: [TextButton(child: Padding(padding: const EdgeInsets.all(8.0), child: Text("OK")), onPressed: () => Get.back())],
+          ));
+          return false;
+        }
 
         // == SAVE
         final _id = realm?.id ?? ObjectId().hexString;
@@ -517,27 +549,27 @@ class RealmEditor extends StatelessWidget {
         for (var id in values["_dreams"]) {
           database.firstWhere((element) => element["_id"] == id)["realm"] = _id;
         }
-        (() async {
-          final extraFile = File(platformStorageDir.absolute.path + "/lldj-realms/" + (newData["_id"] as String) + ".json");
-          var _condition = (values["characters"] == [] && values["settings"] == [] && values["history"] == []);
+        Future.sync(() async {
+          final extraFile = File(platformStorageDir.absolute.path + "/lldj-realms/" + _id + ".json");
+          var _condition = (values["characters"].isEmpty && values["settings"].isEmpty && values["history"].isEmpty);
           if (!_condition) await extraFile.writeAsString(jsonEncode({
-            "characters": values["characters"].map<Map<String, String?>>((e) => {
-              "body": e["body"].value.text,
-              "title": e["title"].value.text
+            "characters": values["characters"].map<Map<String, String>>((e) => {
+              "body": e["body"].value.text as String,
+              "title": e["title"].value.text as String
             }).toList(),
             "settings": values["settings"].map<Map<String, String?>>((e) => {
-              "body": e["body"].value.text,
-              "title": e["title"].value.text
+              "body": e["body"].value.text as String,
+              "title": e["title"].value.text as String
             }).toList(),
             "history": values["history"].map<Map<String, String?>>((e) => {
-              "body": e["body"].value.text,
-              "title": e["title"].value.text
+              "body": e["body"].value.text as String,
+              "title": e["title"].value.text as String
             }).toList(),
           }));
           else if (_condition && await extraFile.exists()) {
             extraFile.delete();
           }
-        })();
+        });
         if (mode == RealmEditMode.create) {
           realmDatabase.add(newData);
         } else {

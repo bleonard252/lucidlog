@@ -122,6 +122,8 @@ void main() async {
   if (!await _commentsFolder.exists()) await _commentsFolder.create();
   final _plotlinesFolder = Directory(platformStorageDir.absolute.path + "/lldj-plotlines/");
   if (!await _plotlinesFolder.exists()) await _plotlinesFolder.create();
+  final _realmsFolder = Directory(platformStorageDir.absolute.path + "/lldj-realms/");
+  if (!await _realmsFolder.exists()) await _realmsFolder.create();
   try {
     notificationsPlugin = FlutterLocalNotificationsPlugin();
     canUseNotifications = (await notificationsPlugin!.initialize(InitializationSettings(
