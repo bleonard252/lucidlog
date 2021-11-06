@@ -44,13 +44,15 @@ class _BaseEditorState extends State<BaseEditor> {
     super.initState();
   }
 
-  void setActivePage(String? activePage) {
-    setState(() {
+  void setActivePage(String? activePage, [bool skipState = false]) {
+    if (!skipState) setState(() {
       this.activePage = activePage;
     });
+    else this.activePage = activePage;
   }
-  void setValue(String key, dynamic value) {
-    setState(() => values[key] = value);
+  void setValue(String key, dynamic value, [bool skipState = false]) {
+    if (!skipState) setState(() => values[key] = value);
+    else values[key] = value;
   }
 
   String? activePage;
@@ -209,6 +211,7 @@ class _EditorController extends InheritedWidget {
 
   get setActivePage => _editorState.setActivePage;
   get setValue => _editorState.setValue;
+  get forceSave => _editorState.save;
 
   @override
   bool updateShouldNotify(covariant InheritedWidget oldWidget) {
