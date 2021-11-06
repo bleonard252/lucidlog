@@ -1,4 +1,3 @@
-//import 'package:date_field/date_field.dart';
 import 'dart:convert';
 import 'dart:io';
 
@@ -9,10 +8,9 @@ import 'package:journal/db/dream.dart';
 import 'package:journal/views/editor.dart';
 import 'package:journal/views/optional_features.dart';
 import 'package:journal/widgets/editor.dart';
-import 'package:date_time_format/date_time_format.dart';
 import 'package:mdi/mdi.dart';
 import 'package:objectdb/objectdb.dart';
-import 'package:simple_markdown_editor/simple_markdown_editor.dart';
+//import 'package:simple_markdown_editor/simple_markdown_editor.dart';
 
 import '../main.dart';
 

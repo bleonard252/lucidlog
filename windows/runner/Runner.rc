@@ -90,12 +90,12 @@ BEGIN
         BLOCK "040904e4"
         BEGIN
             VALUE "CompanyName", "xyz.1024256.ldr" "\0"
-            VALUE "FileDescription", "A new Flutter project." "\0"
+            VALUE "FileDescription", "Dream journal with optional features" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
             VALUE "InternalName", "lucidlog" "\0"
-            VALUE "LegalCopyright", "Copyright (C) 2021 xyz.1024256.ldr. All rights reserved." "\0"
+            VALUE "LegalCopyright", "Copyright (C) 2021 Blake Leonard. All rights reserved." "\0"
             VALUE "OriginalFilename", "lucidlog.exe" "\0"
-            VALUE "ProductName", "lucidlog" "\0"
+            VALUE "ProductName", "LucidLog" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END
