@@ -51,7 +51,7 @@ class AboutScreen extends StatelessWidget {
           onTap: () => launch("https://github.com/bleonard252/lucidlog"),
         ),
         if (profileNumber > 0) ListTile(
-          leading: Icon(Mdi.xml),
+          leading: Icon(Mdi.accountMultiple),
           title: Text("Profiles"),
           subtitle: Column(
             children: [

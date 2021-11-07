@@ -10,6 +10,7 @@ import 'package:journal/db/dream.dart';
 import 'package:journal/db/realm.dart';
 import 'package:journal/migrations/databasev6.dart';
 import 'package:journal/router.dart';
+import 'package:journal/versions.dart';
 import 'package:journal/views/optional_features.dart';
 import 'package:journal/widgets/empty_state.dart';
 import 'package:journal/widgets/preflight.dart';
@@ -37,6 +38,7 @@ List<String> migrationNotices = [];
 /// of the app's database and settings,
 /// and to confirm that no further migrations need to be done.
 String? get appVersion => sharedPreferences.getString("last-version");
+Version? get appver => Version(appVersion ?? "999");
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -98,10 +100,10 @@ void main() async {
     sharedPreferences.setString("last-version", "7");
     migrationNotices.add("Tags are now an optional feature. However, you've used them before, so it's been turned on for you.");
   }
-  if (appVersion != "" && appVersion != "8" && appVersion != "8 beta 1") migrationNotices.add("The editor has been updated! The creating and tagging process should still be familiar.");
+  if (appVersion != "" && (appver ?? Version("999")) < Version("8")) migrationNotices.add("The editor has been updated! The creating and tagging process should still be familiar.");
   else if (appVersion == "8 beta 1" && OptionalFeatures.realms) migrationNotices.add("The editor has been updated! You can now create and edit PRs with the new editor, too.");
   else if (appVersion == "8 beta 1") migrationNotices.add("The editor has been updated!");
-  sharedPreferences.setString("last-version", "8");
+  sharedPreferences.setString("last-version", "8 patch 1");
   databaseFile = File(platformStorageDir.absolute.path + "/dreamjournal.json");
   if (!await databaseFile.exists()) {
     await databaseFile.create(recursive: true);

@@ -11,6 +11,7 @@ import 'package:journal/migrations/databasev6.dart';
 import 'package:journal/views/methods.dart';
 import 'package:journal/views/optional_features.dart';
 import 'package:mdi/mdi.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences_settings/shared_preferences_settings.dart' as Settings;
 import 'package:tar/tar.dart';
 
@@ -119,15 +120,24 @@ class SettingsRoot extends StatelessWidget {
                     if (file is File) TarEntry(TarHeader(name: "lldj-plotlines/"+file.uri.pathSegments.last), file.openRead())
                 ]).transform(tarWriter).transform(gzip.encoder);
                 if (GetPlatform.isAndroid) {
-                  await tarEntries.pipe(outfile.openWrite());
-                  final newfile = await File(platformStorageDir.absolute.path + "/export.tgz").copy(
-                    (await ExternalPath.getExternalStoragePublicDirectory(ExternalPath.DIRECTORY_DOWNLOADS))
-                    + "/dreamjournal-${DateTime.now().millisecondsSinceEpoch}.lldj");
-                  Get.dialog(AlertDialog(
-                    title: Text("File exported to Downloads"),
-                    content: SelectableText(newfile.absolute.path),
-                    actions: [TextButton(child: Text("OK"), onPressed: () => Get.back())],
-                  ));
+                  if (await Permission.storage.request() == PermissionStatus.granted) {
+                    await tarEntries.pipe(outfile.openWrite());
+                    final newfile = await outfile.copy(
+                      (await ExternalPath.getExternalStoragePublicDirectory(ExternalPath.DIRECTORY_DOWNLOADS))
+                      + "/dreamjournal-${DateTime.now().millisecondsSinceEpoch}.lldj");
+                    //FileSaver
+                    Get.dialog(AlertDialog(
+                      title: Text("File exported to Downloads"),
+                      content: SelectableText(newfile.absolute.path),
+                      actions: [TextButton(child: Text("OK"), onPressed: () => Get.back())],
+                    ));
+                  } else {
+                    Get.dialog(AlertDialog(
+                      title: Text("Permission denied"),
+                      content: SelectableText("You have to grant permission in your device's settings to use this feature."),
+                      actions: [TextButton(child: Text("OK"), onPressed: () => Get.back())],
+                    ));
+                  }
                 } else if (GetPlatform.isDesktop) {
                   var filename = await FilePicker.platform.saveFile(
                     dialogTitle: "Save dream journal database",

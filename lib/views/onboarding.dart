@@ -114,6 +114,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         // }
         //ignore: assignment_to_final
         database = jsonDecode(await databaseFile.readAsString()) as dynamic;
+        realmDatabase = jsonDecode(await realmDatabaseFile.readAsString()) as dynamic;
+        isRealmDatabaseLoaded = true;
         Get.offAllNamed("/");
       },
     );
