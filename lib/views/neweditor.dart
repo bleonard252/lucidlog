@@ -415,7 +415,7 @@ class DreamEditor extends StatelessWidget {
                       child: OutlinedButton(
                         onPressed: () {
                           //editor.setValue("_hasCompletedInitialFlow", true);
-                          editor.setActivePage("body");
+                          editor.setActivePage("body", true);
                         },
                         child: Text("Next")
                       ),
@@ -429,8 +429,11 @@ class DreamEditor extends StatelessWidget {
                       padding: const EdgeInsets.all(8.0),
                       child: OutlinedButton(
                         onPressed: () {
-                          editor.setValue("_hasCompletedInitialFlow", true);
-                          //editor.setActivePage("body");
+                          if (tagController.value.text.isNotEmpty) 
+                          editor.setValue("tags", editor.values["tags"]..add(tagController.value.text.replaceFirst(",", "")), true);
+                          editor.setValue("_hasCompletedInitialFlow", true, true);
+                          tagController.clear();
+                          editor.setActivePage(null);
                         },
                         child: Text("Continue")
                       ),
@@ -443,6 +446,9 @@ class DreamEditor extends StatelessWidget {
                         onPressed: () {
                           //editor.setValue("_hasCompletedInitialFlow", true);
                           //editor.setActivePage("body");
+                          if (tagController.value.text.isNotEmpty) 
+                          editor.setValue("tags", editor.values["tags"]..add(tagController.value.text.replaceFirst(",", "")), true);
+                          tagController.clear();
                           editor.forceSave();
                         },
                         child: Text("Finish")

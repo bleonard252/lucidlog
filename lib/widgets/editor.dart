@@ -119,10 +119,10 @@ class _BaseEditorState extends State<BaseEditor> {
               ],
             ) : AppBar(
               leading: Tooltip(
-                message: "Back",
+                message: "Editor main menu",
                 child: IconButton(
                   onPressed: () => BaseEditor.of(context)?.setActivePage(null),
-                  icon: Icon(Mdi.arrowLeft)
+                  icon: Icon(Mdi.menu)
                 )
               ),
               title: widget.rightSideTitle(activePage!) ?? widget.leftSideTitle,
@@ -245,7 +245,10 @@ class EditorRightPaneButton extends StatelessWidget {
       minVerticalPadding: listTile.minVerticalPadding,
       mouseCursor: listTile.mouseCursor,
       onLongPress: null,
-      onTap: () => BaseEditor.of(context)?.setActivePage(targetPageName),
+      onTap: () {
+        BaseEditor.of(context)?.setValue("_hasCompletedInitialFlow", true, true);
+        BaseEditor.of(context)?.setActivePage(targetPageName);
+      },
       selected: BaseEditor.of(context)?.activePage == targetPageName,
       selectedTileColor: listTile.selectedTileColor,
       shape: listTile.shape,
