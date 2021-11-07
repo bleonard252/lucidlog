@@ -508,6 +508,9 @@ class DreamEditor extends StatelessWidget {
                     // Gray out techniques that have been removed from the list
                     color: Colors.white.withAlpha(sharedPreferences.getStringList("ld-methods")?.contains(i)??false ? 255 : 127))
                   ),
+                ),
+                if ((sharedPreferences.getStringList("ld-methods") ?? []).isEmpty) Center(
+                  child: Text("Go to Settings to add more techniques.", textAlign: TextAlign.center)
                 )
               ],
             );

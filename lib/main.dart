@@ -98,7 +98,7 @@ void main() async {
     sharedPreferences.setString("last-version", "7");
     migrationNotices.add("Tags are now an optional feature. However, you've used them before, so it's been turned on for you.");
   }
-  if (appVersion != "8" && appVersion != "8 beta 1") migrationNotices.add("The editor has been updated! The creating and tagging process should still be familiar.");
+  if (appVersion != "" && appVersion != "8" && appVersion != "8 beta 1") migrationNotices.add("The editor has been updated! The creating and tagging process should still be familiar.");
   else if (appVersion == "8 beta 1" && OptionalFeatures.realms) migrationNotices.add("The editor has been updated! You can now create and edit PRs with the new editor, too.");
   else if (appVersion == "8 beta 1") migrationNotices.add("The editor has been updated!");
   sharedPreferences.setString("last-version", "8");
@@ -162,6 +162,10 @@ class MyApp extends StatelessWidget {
       appBarTheme: AppBarTheme(
         backgroundColor: surfaceColor,
         shadowColor: Colors.purple
+      ),
+      bottomAppBarTheme: BottomAppBarTheme(
+        color: Colors.grey[900],
+        elevation: 2.0
       ),
       bannerTheme: MaterialBannerThemeData(
         backgroundColor: Colors.purple[900]!.withAlpha(36)
