@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:get/get.dart';
@@ -177,6 +179,20 @@ class RealmDetails extends StatelessWidget {
                               ])
                             )
                           ),
+                          FutureBuilder(
+                            future: realm.extraFile.exists(),
+                            builder: (ctx, snap) => snap.hasData && snap.data == true 
+                            ? Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 4.0),
+                              child: Column(
+                                children: [
+                                  SubrecordDetailsWidget(realm: realm, subrecordType: "characters"),
+                                  SubrecordDetailsWidget(realm: realm, subrecordType: "settings"),
+                                  SubrecordDetailsWidget(realm: realm, subrecordType: "history"),
+                                ],
+                              ),
+                            ) : Container()
+                          ),
                           Padding(
                             padding: const EdgeInsets.symmetric(vertical: 4),
                             child: Material(
@@ -244,13 +260,103 @@ class RealmDetails extends StatelessWidget {
                         icon: Icon(Mdi.textBoxPlusOutline),
                         text: Text("No dreams are considered part of this PR yet."),
                       ))
-                                    ]),
-                    )
+                    ]),
+                  )
                 ]),
-                          ),
-              )]
+              ),
+            )
+          ]
         )
       )
+    );
+  }
+}
+
+class SubrecordDetailsWidget extends StatefulWidget {
+  final RealmRecord realm;
+  final String subrecordType;
+  const SubrecordDetailsWidget({ Key? key, required this.realm, required this.subrecordType }) : super(key: key);
+
+  @override
+  _SubrecordDetailsWidgetState createState() => _SubrecordDetailsWidgetState();
+}
+
+class _SubrecordDetailsWidgetState extends State<SubrecordDetailsWidget> {
+  late List<RealmSubrecord> subrecords;
+  late Future gotFile;
+  List<int> activePanels = [];
+
+  @override
+  void initState() {
+    super.initState();
+    gotFile = widget.realm.extraFile.readAsString().then((value) => 
+      subrecords = (jsonDecode(value))[widget.subrecordType]!.map<RealmSubrecord>((e) => 
+        RealmSubrecord(title: e["title"]!, body: e["body"]!)
+      ).toList()
+    ).onError((error, stackTrace) => subrecords = []);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder(
+      future: gotFile,
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) return Container();
+        if (subrecords.isEmpty) return Container();
+        return Column(
+          children: [
+            ExpansionPanelList(
+              children: [
+                for (final rec in subrecords) ExpansionPanel(
+                  headerBuilder: (_, __) => Container(
+                    alignment: Alignment.centerLeft,
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Row(
+                        children: [
+                          if (widget.subrecordType == "characters") Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Icon(Mdi.account),
+                          ),
+                          if (widget.subrecordType == "settings") Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Icon(Mdi.mapMarker),
+                          ),
+                          if (widget.subrecordType == "history") Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Icon(Mdi.book),
+                          ),
+                          Text(
+                            rec.title,
+                            style: Get.textTheme.headline6
+                          ),
+                        ],
+                      ),
+                    ),
+                  ), 
+                  body: Align(
+                    alignment: Alignment.topLeft,
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: MarkdownBody(
+                        data: rec.body,
+                        selectable: true,
+                        softLineBreak: true,
+                      ),
+                    ),
+                  ),
+                  canTapOnHeader: true,
+                  isExpanded: activePanels.contains(subrecords.indexOf(rec))
+                ),
+              ],
+              expansionCallback: (index, activated) => setState(() => activated
+                ? activePanels.remove(index)
+                : activePanels.add(index)
+              ),
+            ),
+          ],
+        );
+      }
     );
   }
 }

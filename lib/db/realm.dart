@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:journal/db/dream.dart' show CanBeSearchResult, DreamRecord, RecordWithId;
 import 'package:journal/main.dart';
 
@@ -34,10 +36,7 @@ class RealmRecord with CanBeSearchResult implements RecordWithId {
   Future<void> delete() {
     return Future.value(realmDatabase.remove(_document));
   }
-
-  List<RealmSubrecord> get characters => (_document["characters"] ?? []).map<RealmSubrecord>((v) => RealmSubrecord(name: v["name"], body: v["body"]));
-  set characters(List<RealmSubrecord> value) => _document["characters"] = value.map<dynamic>((v) => v.toJSON());
-
+  
   List<DreamRecord> includedDreams([List<DreamRecord>? list]) {
     list = list ?? dreamList;
     late List<DreamRecord> _list;
@@ -51,6 +50,8 @@ class RealmRecord with CanBeSearchResult implements RecordWithId {
     return _list.reversed.toList();
   }
 
+  File get extraFile => File(platformStorageDir.absolute.path + "/lldj-realms/" + id + ".json");
+
   void _update(Map query, Map patch) {
     var index = realmDatabase.indexOf(_document);
     realmDatabase[index] = {
@@ -62,12 +63,12 @@ class RealmRecord with CanBeSearchResult implements RecordWithId {
 }
 
 class RealmSubrecord {
-  final String? name;
+  final String title;
   final String body;
-  RealmSubrecord({this.name, required this.body});
+  RealmSubrecord({required this.title, required this.body});
 
   Map toJSON() => {
-    "name": this.name,
+    "title": this.title,
     "body": this.body
   };
 }

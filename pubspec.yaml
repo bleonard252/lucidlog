@@ -15,7 +15,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
-version: 7.0.0+22
+version: 8.0.0+24
 
 environment:
   sdk: '>=2.14.4 <3.0.0'
@@ -44,6 +44,9 @@ dependencies:
   tar: ^0.5.1
   flutter:
     sdk: flutter
+  simple_markdown_editor: ^0.1.7
+  # At some point, fork and update this:
+  # https://github.com/ammaratef45/flutter_markdown_editor
 
 
   # The following adds the Cupertino Icons font to your application.

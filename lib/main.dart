@@ -10,6 +10,7 @@ import 'package:journal/db/dream.dart';
 import 'package:journal/db/realm.dart';
 import 'package:journal/migrations/databasev6.dart';
 import 'package:journal/router.dart';
+import 'package:journal/views/optional_features.dart';
 import 'package:journal/widgets/empty_state.dart';
 import 'package:journal/widgets/preflight.dart';
 import 'package:mdi/mdi.dart';
@@ -27,6 +28,8 @@ late final bool? canUseNotifications;
 late List<DreamRecord> dreamList;
 late List<RealmRecord> realmList;
 bool isRealmDatabaseLoaded = false;
+int profileNumber = 1;
+List<String> migrationNotices = [];
 
 /// The version that the app is running on. This should match up with the current version number,
 /// and is shown in About to verify it.
@@ -42,11 +45,17 @@ void main() async {
   if (!sharedPreferences.containsKey("datetime-format")) sharedPreferences.setString("datetime-format", DateTimeFormats.commonLogFormat);
   if (sharedPreferences.getString("datetime-format") == "american") sharedPreferences.setString("datetime-format", DateTimeFormats.commonLogFormat);
   //final _androidStorageOne = Directory("/storage/emulated/0/Documents");
-  platformStorageDir = GetPlatform.isAndroid ? ((await getExternalStorageDirectories(type: StorageDirectory.documents)) ?? [])[0]
+  profileNumber = sharedPreferences.getInt("profile") ?? 1;
+  var _platformStorageDir = GetPlatform.isAndroid ? ((await getExternalStorageDirectories(type: StorageDirectory.documents)) ?? [])[0]
     : GetPlatform.isLinux ? await getApplicationDocumentsDirectory()
     : GetPlatform.isIOS ? await getApplicationDocumentsDirectory()
     : GetPlatform.isWindows ? await getApplicationDocumentsDirectory()
     : await getApplicationSupportDirectory();
+  final _tempPSD = Directory(_platformStorageDir.absolute.path + "/lldj-temp-profile/");
+  if (await _tempPSD.exists()) _tempPSD.delete(recursive: true);
+  if (profileNumber == 1) platformStorageDir = Directory(_platformStorageDir.absolute.path);
+  else if (profileNumber == 0) platformStorageDir = _tempPSD;
+  else platformStorageDir = Directory(_platformStorageDir.absolute.path + "/lldj-profile-$profileNumber/");
   /// Migrations which have been removed should be added here.
   const unsupportedVersions = ["4"];
   if (unsupportedVersions.contains(appVersion)) {
@@ -72,7 +81,7 @@ void main() async {
     await migration;
     sharedPreferences.setString("last-version", "6");
   }
-  if (appVersion == "6") {
+  if (appVersion == "6" || (appVersion?.startsWith("7 beta")??false)) {
     print("running database migration: 6 -> 7");
     runApp(PreflightScreen(
       child: EmptyState(
@@ -87,8 +96,12 @@ void main() async {
     || database.any((element) => element["incomplete"] is bool && element["incomplete"] == true);
     sharedPreferences.setBool("opt-tags", hasUsedTags);
     sharedPreferences.setString("last-version", "7");
+    migrationNotices.add("Tags are now an optional feature. However, you've used them before, so it's been turned on for you.");
   }
-  sharedPreferences.setString("last-version", "7");
+  if (appVersion != "8" && appVersion != "8 beta 1") migrationNotices.add("The editor has been updated! The creating and tagging process should still be familiar.");
+  else if (appVersion == "8 beta 1" && OptionalFeatures.realms) migrationNotices.add("The editor has been updated! You can now create and edit PRs with the new editor, too.");
+  else if (appVersion == "8 beta 1") migrationNotices.add("The editor has been updated!");
+  sharedPreferences.setString("last-version", "8");
   databaseFile = File(platformStorageDir.absolute.path + "/dreamjournal.json");
   if (!await databaseFile.exists()) {
     await databaseFile.create(recursive: true);
@@ -115,6 +128,8 @@ void main() async {
   if (!await _commentsFolder.exists()) await _commentsFolder.create();
   final _plotlinesFolder = Directory(platformStorageDir.absolute.path + "/lldj-plotlines/");
   if (!await _plotlinesFolder.exists()) await _plotlinesFolder.create();
+  final _realmsFolder = Directory(platformStorageDir.absolute.path + "/lldj-realms/");
+  if (!await _realmsFolder.exists()) await _realmsFolder.create();
   try {
     notificationsPlugin = FlutterLocalNotificationsPlugin();
     canUseNotifications = (await notificationsPlugin!.initialize(InitializationSettings(
@@ -147,6 +162,9 @@ class MyApp extends StatelessWidget {
       appBarTheme: AppBarTheme(
         backgroundColor: surfaceColor,
         shadowColor: Colors.purple
+      ),
+      bannerTheme: MaterialBannerThemeData(
+        backgroundColor: Colors.purple[900]!.withAlpha(36)
       ),
       buttonTheme: ButtonThemeData(
         padding: EdgeInsets.all(16.0),

@@ -4,8 +4,11 @@ import 'package:journal/main.dart';
 import 'package:mdi/mdi.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+// ignore: must_be_immutable
 class AboutScreen extends StatelessWidget {
-  const AboutScreen({ Key? key }) : super(key: key);
+  AboutScreen({ Key? key }) : super(key: key);
+
+  int _profileNumber = profileNumber;
 
   @override
   Widget build(BuildContext context) {
@@ -31,7 +34,7 @@ class AboutScreen extends StatelessWidget {
           title: Text("Privacy"),
           subtitle: Text("No personal information is collected and no data leaves the app without your direct instruction."),
           leading: Icon(Mdi.noteText),
-          onTap: () => launch("https://ldr.1024256.xyz/appendix/app-policy"),
+          onTap: () => launch("https://resources.dreamstation.one/appendix/app-policy"),
         ),
         // ListTile(
         //   title: Text("Revert to database from v5"),
@@ -46,6 +49,28 @@ class AboutScreen extends StatelessWidget {
           title: Text("Source Code"),
           subtitle: Text("https://github.com/bleonard252/lucidlog"),
           onTap: () => launch("https://github.com/bleonard252/lucidlog"),
+        ),
+        if (profileNumber > 0) ListTile(
+          leading: Icon(Mdi.xml),
+          title: Text("Profiles"),
+          subtitle: Column(
+            children: [
+              StatefulBuilder(
+                builder: (context, setState) => Slider(
+                  value: _profileNumber.toDouble(),
+                  divisions: 2,
+                  max: 3,
+                  min: 1,
+                  onChanged: (nv) {
+                    setState(() => _profileNumber = nv.floor());
+                    sharedPreferences.setInt("profile", _profileNumber);
+                  }
+                ),
+              ),
+              Text("Use Profiles for experimentation with the app, or to synchronize with other devices. You must restart the app for this to take effect.")
+            ],
+            crossAxisAlignment: CrossAxisAlignment.start,
+          ),
         ),
         // ListTile(
         //   leading: Icon(SimpleIcons.discord),
