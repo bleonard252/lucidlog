@@ -34,7 +34,7 @@ class AboutScreen extends StatelessWidget {
           title: Text("Privacy"),
           subtitle: Text("No personal information is collected and no data leaves the app without your direct instruction."),
           leading: Icon(Mdi.noteText),
-          onTap: () => launch("https://ldr.1024256.xyz/appendix/app-policy"),
+          onTap: () => launch("https://resources.dreamstation.one/appendix/app-policy"),
         ),
         // ListTile(
         //   title: Text("Revert to database from v5"),

@@ -125,13 +125,19 @@ class _DreamListScreenState extends State<DreamListScreen> {
         ],
       ),
       body: isListInitialized ? 
-      list.length > 0 ? ListView.builder(
-        itemBuilder: (_, i) => DreamEntry(dream: list[i], list: list),
-        itemCount: list.length,
-      ) : Center(child: EmptyState(
-        icon: Icon(Icons.post_add),
-        text: Text("This journal is a ghost town!\nWrite down some dreams!"),
-      ))
+        (list.length + migrationNotices.length) > 0 ? ListView.builder(
+          itemBuilder: (_, i) => i < migrationNotices.length ? MaterialBanner(
+            leading: Icon(Mdi.bullhorn, color: Get.theme.colorScheme.secondary),
+            content: Text(migrationNotices[i]),
+            actions: [
+              IconButton(icon: Icon(Icons.close), onPressed: () => setState(() => migrationNotices.remove(migrationNotices[i])))
+            ]
+          ) : DreamEntry(dream: list[i-migrationNotices.length], list: list),
+          itemCount: list.length + migrationNotices.length,
+        ) : Center(child: EmptyState(
+          icon: Icon(Icons.post_add),
+          text: Text("This journal is a ghost town!\nWrite down some dreams!"),
+        ))
       : FutureBuilder(
         builder: (context, snapshot) => snapshot.connectionState == ConnectionState.done ? Center(child: EmptyState(
           icon: Icon(Mdi.contentSaveAlertOutline),
@@ -147,14 +153,14 @@ class _DreamListScreenState extends State<DreamListScreen> {
           //buttonTextTheme: ButtonTextTheme.primary,
           children: [
             FutureBuilder(
-              future: canLaunch("https://ldr.1024256.xyz"),
+              future: canLaunch("https://resources.dreamstation.one"),
               builder: (context, snapshot) => snapshot.data == true ? Tooltip(
                 message: "Guides",
                 child: Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: IconButton(
-                    icon: Icon(Icons.map),
-                    onPressed: () async => await launch("https://ldr.1024256.xyz"),
+                    icon: Icon(Mdi.helpCircleOutline),
+                    onPressed: () async => await launch("https://resources.dreamstation.one"),
                     color: Get.theme.colorScheme.secondary,
                   ),
                 ),
@@ -267,7 +273,7 @@ class DreamEntry extends StatelessWidget {
         ),
         leading: Icon(Icons.info_outline_rounded),
         onTap: () => Get.toNamed("/dreams/complete", arguments: dream),
-        onLongPress: () => Get.to(() => DreamEdit(mode: DreamEditMode.tag, dream: dream)),
+        onLongPress: () => Get.to(() => DreamEditor(mode: DreamEditMode.tag, dream: dream)),
       ),
       Divider(height: 1)
     ]);
