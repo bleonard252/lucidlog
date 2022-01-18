@@ -103,7 +103,7 @@ void main() async {
   if (appVersion != "" && (appver ?? Version("999")) < Version("8")) migrationNotices.add("The editor has been updated! The creating and tagging process should still be familiar.");
   else if (appVersion == "8 beta 1" && OptionalFeatures.realms) migrationNotices.add("The editor has been updated! You can now create and edit PRs with the new editor, too.");
   else if (appVersion == "8 beta 1") migrationNotices.add("The editor has been updated!");
-  sharedPreferences.setString("last-version", "8 patch 1");
+  sharedPreferences.setString("last-version", "9 beta 1");
   databaseFile = File(platformStorageDir.absolute.path + "/dreamjournal.json");
   if (!await databaseFile.exists()) {
     await databaseFile.create(recursive: true);

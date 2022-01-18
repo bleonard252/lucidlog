@@ -40,6 +40,7 @@ class _BaseEditorState extends State<BaseEditor> {
   void initState() {
     //Future.value(widget.initValues?.call()).then((result) => values = result);
     values = widget.initValues?.call() ?? values;
+    initialValues = values;
     activePage = widget.defaultPage ?? activePage;
     super.initState();
   }
@@ -56,122 +57,154 @@ class _BaseEditorState extends State<BaseEditor> {
   }
 
   String? activePage;
+  late Map<String, dynamic> initialValues;
   Map<String, dynamic> values = {};
 
   void save() async {
     var success = await widget.onSave?.call(values);
-    if (success ?? false) Get.back(closeOverlays: true);
+    if (success ?? false) {
+      initialValues = valueStaticizer(values);
+      Get.back(closeOverlays: true);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return _EditorController(
-      editorState: this,
-      activePage: activePage,
-      values: values,
-      child: Builder(
-        builder: (context) {
-          return Scaffold(
-            // The app bar has three states: Desktop, Left, and Right.
-            appBar: MediaQuery.of(context).size.width > BaseEditor._breakpoint*2 ? AppBar(
-              leading: Tooltip(
-                message: "Cancel",
-                child: IconButton(
-                  onPressed: () => Get.back(closeOverlays: true),
-                  icon: Icon(Icons.close)
-                )
-              ),
-              title: Row(
-                crossAxisAlignment: CrossAxisAlignment.baseline,
-                textBaseline: TextBaseline.alphabetic,
-                children: [
-                  widget.leftSideTitle,
-                  Expanded(child: Container()),
-                  if (activePage != null) widget.rightSideTitle(activePage!) ?? Text("")
+    return WillPopScope(
+      child: _EditorController(
+        editorState: this,
+        activePage: activePage,
+        values: values,
+        child: Builder(
+          builder: (context) {
+            return Scaffold(
+              // The app bar has three states: Desktop, Left, and Right.
+              appBar: MediaQuery.of(context).size.width > BaseEditor._breakpoint*2 ? AppBar(
+                leading: Tooltip(
+                  message: "Cancel",
+                  child: IconButton(
+                    onPressed: () => Get.back(closeOverlays: true),
+                    icon: Icon(Icons.close)
+                  )
+                ),
+                title: Row(
+                  crossAxisAlignment: CrossAxisAlignment.baseline,
+                  textBaseline: TextBaseline.alphabetic,
+                  children: [
+                    widget.leftSideTitle,
+                    Expanded(child: Container()),
+                    if (activePage != null) widget.rightSideTitle(activePage!) ?? Text("")
+                  ],
+                ),
+                actions: [
+                  Tooltip(
+                    message: "Save",
+                    child: IconButton(
+                      onPressed: () => save(),
+                      icon: Icon(Icons.save)
+                    )
+                  ),
                 ],
-              ),
-              actions: [
-                Tooltip(
-                  message: "Save",
+              ) : activePage == null ? AppBar(
+                leading: Tooltip(
+                  message: "Cancel",
                   child: IconButton(
-                    onPressed: () => save(),
-                    icon: Icon(Icons.save)
+                    onPressed: () => Get.back(closeOverlays: true),
+                    icon: Icon(Icons.close)
                   )
                 ),
-              ],
-            ) : activePage == null ? AppBar(
-              leading: Tooltip(
-                message: "Cancel",
-                child: IconButton(
-                  onPressed: () => Get.back(closeOverlays: true),
-                  icon: Icon(Icons.close)
-                )
-              ),
-              title: widget.leftSideTitle,
-              actions: [
-                Tooltip(
-                  message: "Save",
+                title: widget.leftSideTitle,
+                actions: [
+                  Tooltip(
+                    message: "Save",
+                    child: IconButton(
+                      onPressed: () => save(),
+                      icon: Icon(Icons.save)
+                    )
+                  ),
+                ],
+              ) : AppBar(
+                leading: Tooltip(
+                  message: "Editor main menu",
                   child: IconButton(
-                    onPressed: () => save(),
-                    icon: Icon(Icons.save)
+                    onPressed: () => BaseEditor.of(context)?.setActivePage(null),
+                    icon: Icon(Mdi.menu)
                   )
                 ),
-              ],
-            ) : AppBar(
-              leading: Tooltip(
-                message: "Editor main menu",
-                child: IconButton(
-                  onPressed: () => BaseEditor.of(context)?.setActivePage(null),
-                  icon: Icon(Mdi.menu)
-                )
+                title: widget.rightSideTitle(activePage!) ?? widget.leftSideTitle,
+                
               ),
-              title: widget.rightSideTitle(activePage!) ?? widget.leftSideTitle,
-              
-            ),
-            body: Get.mediaQuery.size.width > BaseEditor._breakpoint*2
-            ? Row(
-              mainAxisSize: MainAxisSize.max,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                SizedBox(
-                  width: BaseEditor._breakpoint.toDouble(),
-                  child: ListView.separated(
-                    itemBuilder: (c, i) => widget.leftSide(context)[i],
-                    itemCount: widget.leftSide(context).length,
-                    separatorBuilder: (c, i) => Divider(thickness: 4, height: 4),
+              body: Get.mediaQuery.size.width > BaseEditor._breakpoint*2
+              ? Row(
+                mainAxisSize: MainAxisSize.max,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(
+                    width: BaseEditor._breakpoint.toDouble(),
+                    child: ListView.separated(
+                      itemBuilder: (c, i) => widget.leftSide(context)[i],
+                      itemCount: widget.leftSide(context).length,
+                      separatorBuilder: (c, i) => Divider(thickness: 4, height: 4),
+                    ),
                   ),
-                ),
-                Expanded(
-                  child: activePage != null ? Builder(
-                    builder: (context) => widget.rightSide(context, activePage!) 
-                    ?? _buildEmptyRightPage()
-                  ) : _buildEmptyRightPage()
-                )
-              ],
-            ) : Stack(
-              fit: StackFit.expand,
-              children: [
-                Positioned.fill(child: Material(
-                  color: Get.theme.canvasColor,
-                  child: ListView.separated(
-                    itemBuilder: (c, i) => widget.leftSide(context)[i],
-                    itemCount: widget.leftSide(context).length,
-                    separatorBuilder: (c, i) => Divider(thickness: 4, height: 4),
-                  ),
-                )),
-                if (activePage != null && activePage!.isNotEmpty) Positioned.fill(
-                  child: Material(
+                  Expanded(
+                    child: activePage != null ? Builder(
+                      builder: (context) => widget.rightSide(context, activePage!) 
+                      ?? _buildEmptyRightPage()
+                    ) : _buildEmptyRightPage()
+                  )
+                ],
+              ) : Stack(
+                fit: StackFit.expand,
+                children: [
+                  Positioned.fill(child: Material(
                     color: Get.theme.canvasColor,
-                    child: widget.rightSide(context, activePage!)
-                    ?? _buildEmptyRightPageMobile(),
+                    child: ListView.separated(
+                      itemBuilder: (c, i) => widget.leftSide(context)[i],
+                      itemCount: widget.leftSide(context).length,
+                      separatorBuilder: (c, i) => Divider(thickness: 4, height: 4),
+                    ),
+                  )),
+                  if (activePage != null && activePage!.isNotEmpty) Positioned.fill(
+                    child: Material(
+                      color: Get.theme.canvasColor,
+                      child: widget.rightSide(context, activePage!)
+                      ?? _buildEmptyRightPageMobile(),
+                    )
                   )
-                )
-              ],
-            )
-          );
-        }
-      )
+                ],
+              )
+            );
+          }
+        )
+      ),
+      onWillPop: () async {
+        if (initialValues != valueStaticizer(values)) {
+          final response = await Get.dialog(AlertDialog(
+            title: Text("Discard changes?"),
+            content: Text("You will lose ALL of your progress on this entry if you choose to discard your changes.\n"
+            "Press Cancel to resume editing."),
+            actions: [
+              TextButton(onPressed: () => Get.back(result: 0), child: Text("SAVE")),
+              TextButton(onPressed: () => Get.back(result: 1), child: Text("DISCARD")),
+              TextButton(onPressed: () => Get.back(result: 2), child: Text("CANCEL")),
+            ],
+          ));
+          if (response == 1) return true; // DISCARD
+          else if (response == 0) {
+            save(); return false; // SAVE
+          } else return false; // CANCEL
+        } else return true;
+      },
     );
+  }
+
+  Map<String, dynamic> valueStaticizer(Map<String, dynamic> values) {
+    return values.map((key, value) => MapEntry(key, 
+      value is TextEditingController ? value.value.text :
+      value is DateTime ? value.toIso8601String() :
+      value
+    ));
   }
 
   Widget _buildEmptyRightPage() {
