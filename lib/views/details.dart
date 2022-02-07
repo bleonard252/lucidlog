@@ -1,9 +1,14 @@
+import 'dart:io';
+
+import 'package:clipboard/clipboard.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:get/get.dart';
 import 'package:journal/db/dream.dart';
 import 'package:journal/db/realm.dart';
 import 'package:journal/main.dart';
+import 'package:journal/sharing/lldj.dart';
+import 'package:journal/sharing/markdown.dart';
 import 'package:journal/views/comments.dart';
 import 'package:journal/views/optional_features.dart';
 import 'package:journal/views/plotline.dart';
@@ -12,6 +17,7 @@ import 'package:journal/widgets/gradienticon.dart';
 import 'package:mdi/mdi.dart';
 import 'package:date_time_format/date_time_format.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:slugify/slugify.dart';
 
 extension DreamList on List<DreamRecord> {
   List<DreamRecord> get lucids => this.where((element) => element.lucid).toList();
@@ -24,8 +30,10 @@ extension DreamList on List<DreamRecord> {
 class DreamDetails extends StatelessWidget {
   final DreamRecord dream;
   final List<DreamRecord>? list = dreamList.reversed.toList();
+  /// Used by tools like the Share Viewer.
+  final bool isLimited;
 
-  DreamDetails(this.dream, {Key? key}) : super(key: key);
+  DreamDetails(this.dream, {Key? key, this.isLimited = false}) : super(key: key);
 
   List<String> calculateCounters() {
     assert(list != null && list != [], "Counters must be enabled and list must be given");
@@ -47,32 +55,103 @@ class DreamDetails extends StatelessWidget {
     var _nightFormat = sharedPreferences.containsKey("night-format")
       ? sharedPreferences.getString("night-format") ?? "M j" : "M j";
     return Scaffold(
-      backgroundColor: Get.theme.canvasColor,
+      backgroundColor: Theme.of(context).canvasColor,
       body: Container(
         width: 640,
         alignment: Alignment.topCenter,
         child: SingleChildScrollView(child: Column(
           mainAxisSize: MainAxisSize.max,
           children: [
-            AppBar(
+            if (!isLimited || Navigator.of(context).canPop()) AppBar(
               leading: IconButton(
                 icon: Icon(Icons.arrow_back,
-                  color: Get.theme.colorScheme.onSurface
+                  color: Theme.of(context).colorScheme.onSurface
                 ),
                 onPressed: () => Get.back(),
               ),
               actions: [
-                IconButton(
+                if (!isLimited) PopupMenuButton(
                   icon: Icon(Icons.share),
-                  onPressed: () => Share.share("**${dream.title}** *from ${dream.timestamp.format(_dateFormat ?? DateTimeFormats.commonLogFormat)}*\n"
-                  "${dream.body}", subject: dream.title)
+                  // onPressed: () => Share.share("**${dream.title}** *from ${dream.timestamp.format(_dateFormat ?? DateTimeFormats.commonLogFormat)}*\n"
+                  // "${dream.body}", subject: dream.title)
+                  itemBuilder: (context) => [
+                    PopupMenuItem(
+                      child: Text("Share body as text"),
+                      onTap: () => Share.share(dream.body),
+                    ),
+                    PopupMenuItem(
+                      child: Text("Share as Markdown"),
+                      onTap: () async {
+                        final _name = slugify(dream.title)
+                        + "-${dream.timestamp.year}-${dream.timestamp.month}-${dream.timestamp.day}"
+                        + ".md";
+                        await toMarkdownDocument(dream).asStream().map((event) => event.codeUnits)
+                        .pipe(File(platformStorageDir.absolute.path + "/" + _name).openWrite());
+                        await Share.shareFiles([platformStorageDir.absolute.path + "/" + _name]);
+                      },
+                    ),
+                    PopupMenuItem(
+                      child: Text("Share for Discord"),
+                      onTap: () async {
+                        var _md = await toDiscordMarkdown(dream);
+                        // do redactions/subs here
+                        // eventually figure out how to best split
+                        // it if it's over 2000 chars.
+                        // Mostly this is for style purposes.
+                        var confirmation = true;
+                        if (_md.length > 4000) {
+                          await Get.dialog(AlertDialog(
+                            title: Text("Character limit reached"),
+                            content: Text("This entry exceeds Discord's Nitro limit of 2000 characters.\n"
+                            "Discord does not allow you to post messages this long."),
+                            actions: [
+                              TextButton(onPressed: () => Get.back(result: false), child: Text("OK")),
+                            ],
+                          ));
+                          confirmation = false;
+                        }
+                        else if (_md.length > 2000) confirmation = await Get.dialog(AlertDialog(
+                          title: Text("Character limit reached"),
+                          content: Text("This entry exceeds Discord's free limit of 2000 characters.\n"
+                          "You can still post this with Nitro."),
+                          actions: [
+                            TextButton(onPressed: () => Get.back(result: false), child: Text("CANCEL")),
+                            TextButton(onPressed: () => Get.back(result: true), child: Text("OK")),
+                          ],
+                        ));
+                        if (!confirmation) return;
+                        await FlutterClipboard.copy(_md);
+                        await Get.dialog(AlertDialog(
+                          title: Text("Copied to your clipboard"),
+                          content: Text("Paste it in Discord and make sure everything's redacted that you want."),
+                          actions: [
+                            TextButton(onPressed: () => Get.back(), child: Text("OK")),
+                          ],
+                        ));
+                      },
+                    ),
+                    /* PopupMenuItem(
+                      child: Text("Share as .lldj"),
+                      onTap: () async {
+                        await shareDreamLLDJ(dream).pipe(File(platformStorageDir.absolute.path + "/sharedream.lldj").openWrite());
+                        //await Share.shareFiles([platformStorageDir.absolute.path + "/sharedream.lldj"]);
+                        // await Get.dialog(AlertDialog(
+                        //   title: Text(""),
+                        //   content: Text(""),
+                        //   actions: [
+                        //     TextButton(onPressed: () => Get.back(), child: Text("OK", style: TextStyle(color: Colors.red))),
+                        //   ],
+                        // ));
+                      },
+                    ),*/
+                  ],
                 ),
-                IconButton(
+                if (!isLimited) IconButton(
                   icon: Icon(Icons.edit),
                   onPressed: () => Get.offAndToNamed("/dreams/edit", arguments: dream)
                 )
               ],
-              backgroundColor: Get.theme.canvasColor,
+              backgroundColor: Theme.of(context).canvasColor,
               elevation: 0,
             ),
             Row(children: [
@@ -87,7 +166,7 @@ class DreamDetails extends StatelessWidget {
                     color: Colors.grey
                   ),
                   //backgroundColor: dream.lucid ? Get.theme.primaryColor : Get.theme.disabledColor,
-                  //foregroundColor: Get.textTheme.button!.color,
+                  //foregroundColor: Theme.of(context).textTheme.button!.color,
                   child: Icon(dream.type.icon)
                 ),
               ),
@@ -103,7 +182,7 @@ class DreamDetails extends StatelessWidget {
                           dream.title,
                           overflow: TextOverflow.ellipsis,
                           maxLines: 3,
-                          style: Get.textTheme.headline4
+                          style: Theme.of(context).textTheme.headline4
                         ),
                       ],
                     ),
@@ -117,13 +196,13 @@ class DreamDetails extends StatelessWidget {
               child: Material(
                 elevation: 2,
                 type: MaterialType.card,
-                color: Get.theme.cardColor,
+                color: Theme.of(context).cardColor,
                 borderRadius: BorderRadius.all(Radius.circular(0)),
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children:[
                   Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: Text("Summary", 
-                      style: Get.textTheme.subtitle1?.copyWith(fontWeight: FontWeight.w700)),
+                      style: Theme.of(context).textTheme.subtitle1?.copyWith(fontWeight: FontWeight.w700)),
                   ),
                   Padding(
                     padding: const EdgeInsets.all(8.0),
@@ -147,13 +226,13 @@ class DreamDetails extends StatelessWidget {
               child: Material(
                 elevation: 2,
                 type: MaterialType.card,
-                color: Get.theme.cardColor,
+                color: Theme.of(context).cardColor,
                 borderRadius: BorderRadius.all(Radius.circular(0)),
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, children:[
                   Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: Text("Tags", 
-                      style: Get.textTheme.subtitle1?.copyWith(fontWeight: FontWeight.w700)),
+                      style: Theme.of(context).textTheme.subtitle1?.copyWith(fontWeight: FontWeight.w700)),
                   ),
                   Padding(
                     padding: const EdgeInsets.all(8.0),
@@ -179,13 +258,13 @@ class DreamDetails extends StatelessWidget {
               child: Material(
                 elevation: 2,
                 type: MaterialType.card,
-                color: Get.theme.cardColor,
+                color: Theme.of(context).cardColor,
                 borderRadius: BorderRadius.all(Radius.circular(0)),
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, children:[
                   Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: Text("Techniques used",
-                      style: Get.textTheme.subtitle1?.copyWith(fontWeight: FontWeight.w700)),
+                      style: Theme.of(context).textTheme.subtitle1?.copyWith(fontWeight: FontWeight.w700)),
                   ),
                   Padding(
                     padding: const EdgeInsets.all(8.0),
@@ -236,12 +315,12 @@ class DreamDetails extends StatelessWidget {
               child: Material(
                 elevation: 2,
                 type: MaterialType.card,
-                color: Get.theme.cardColor,
+                color: Theme.of(context).cardColor,
                 borderRadius: BorderRadius.all(Radius.circular(0)),
                 child: SingleChildScrollView(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   // Padding(
                   //   padding: const EdgeInsets.all(8.0),
-                  //   child: Text("User Information", style: Get.textTheme.subtitle1?.copyWith(fontWeight: FontWeight.w700)),
+                  //   child: Text("User Information", style: Theme.of(context).textTheme.subtitle1?.copyWith(fontWeight: FontWeight.w700)),
                   // ),
                   ListTile(
                     // leading: dream.lucid ? dream.wild ? GradientIcon(Mdi.weatherLightning, 24, goldGradient)
@@ -261,7 +340,7 @@ class DreamDetails extends StatelessWidget {
                     title: Text("Date and Time"),
                     subtitle: Text(dream.timestamp.format(_dateFormat ?? DateTimeFormats.commonLogFormat), 
                       maxLines: 1, overflow: TextOverflow.ellipsis, softWrap: false),
-                    onTap: () => Get.to(() => SearchScreen(
+                    onTap: (isLimited) ? null : () => Get.to(() => SearchScreen(
                       mode: SearchListMode.listOrFilter,
                       filter: SearchFilter(
                         name: "Night of ${dream.night.format(_nightFormat)} to ${dream.night.add(Duration(days: 1)).format(_nightFormat)}",
@@ -270,7 +349,7 @@ class DreamDetails extends StatelessWidget {
                       ),
                     )),
                   ),
-                  if (dream.realm?.isNotEmpty == true) Builder(
+                  if (!isLimited && dream.realm?.isNotEmpty == true) Builder(
                     builder: (context) {
                       final _realm = RealmRecord(id: dream.realm!);
                       _realm.loadDocument();
@@ -282,7 +361,7 @@ class DreamDetails extends StatelessWidget {
                       );
                     }
                   ),
-                  if (OptionalFeatures.counters) ListTile(
+                  if (!isLimited && OptionalFeatures.counters) ListTile(
                     leading: Icon(Mdi.clockOutline),
                     title: Text("Counters"),
                     subtitle: Text(calculateCounters().join(", ")),
@@ -290,7 +369,7 @@ class DreamDetails extends StatelessWidget {
                 ]))
               ),
             ),
-            if (OptionalFeatures.comments) DetailsCommentsSection(dream: dream)
+            if (!isLimited && OptionalFeatures.comments) DetailsCommentsSection(dream: dream)
           ]
         ))
       )

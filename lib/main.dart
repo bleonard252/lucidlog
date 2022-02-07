@@ -10,6 +10,7 @@ import 'package:journal/db/dream.dart';
 import 'package:journal/db/realm.dart';
 import 'package:journal/migrations/databasev6.dart';
 import 'package:journal/router.dart';
+import 'package:journal/sharing/incoming.dart';
 import 'package:journal/versions.dart';
 import 'package:journal/views/optional_features.dart';
 import 'package:journal/widgets/empty_state.dart';
@@ -26,8 +27,8 @@ late final List realmDatabase;
 late final SharedPreferences sharedPreferences;
 late final FlutterLocalNotificationsPlugin? notificationsPlugin;
 late final bool? canUseNotifications;
-late List<DreamRecord> dreamList;
-late List<RealmRecord> realmList;
+List<DreamRecord> dreamList = [];
+List<RealmRecord> realmList = [];
 bool isRealmDatabaseLoaded = false;
 int profileNumber = 1;
 List<String> migrationNotices = [];
@@ -54,7 +55,8 @@ void main() async {
     : GetPlatform.isWindows ? await getApplicationDocumentsDirectory()
     : await getApplicationSupportDirectory();
   final _tempPSD = Directory(_platformStorageDir.absolute.path + "/lldj-temp-profile/");
-  if (await _tempPSD.exists()) _tempPSD.delete(recursive: true);
+  /*if (await handleIncomingFile() != null) {}
+  else*/ if (await _tempPSD.exists()) _tempPSD.delete(recursive: true);
   if (profileNumber == 1) platformStorageDir = Directory(_platformStorageDir.absolute.path);
   else if (profileNumber == 0) platformStorageDir = _tempPSD;
   else platformStorageDir = Directory(_platformStorageDir.absolute.path + "/lldj-profile-$profileNumber/");
@@ -103,7 +105,7 @@ void main() async {
   if (appVersion != "" && (appver ?? Version("999")) < Version("8")) migrationNotices.add("The editor has been updated! The creating and tagging process should still be familiar.");
   else if (appVersion == "8 beta 1" && OptionalFeatures.realms) migrationNotices.add("The editor has been updated! You can now create and edit PRs with the new editor, too.");
   else if (appVersion == "8 beta 1") migrationNotices.add("The editor has been updated!");
-  sharedPreferences.setString("last-version", "9 beta 1");
+  sharedPreferences.setString("last-version", "9 beta 2");
   databaseFile = File(platformStorageDir.absolute.path + "/dreamjournal.json");
   if (!await databaseFile.exists()) {
     await databaseFile.create(recursive: true);

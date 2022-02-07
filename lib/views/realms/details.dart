@@ -23,8 +23,9 @@ class RealmDetails extends StatelessWidget {
   //final List<RealmRecord>? list = realmList.reversed.toList();
   late final List<DreamRecord> dreams;
   bool _isDreamListPopulated = false;
+  final bool isLimited;
 
-  RealmDetails(this.realm, {Key? key}) : super(key: key);
+  RealmDetails(this.realm, {Key? key, this.isLimited = false}) : super(key: key);
 
   List<String> calculateCounters() {
     assert(dreams != [], "Counters must be enabled and list must be given");
@@ -48,17 +49,17 @@ class RealmDetails extends StatelessWidget {
     // var _nightFormat = sharedPreferences.containsKey("night-format")
     //   ? sharedPreferences.getString("night-format") ?? "M j" : "M j";
     return Scaffold(
-      backgroundColor: Get.theme.canvasColor,
+      backgroundColor: Theme.of(context).canvasColor,
       body: Container(
         width: 640,
         alignment: Alignment.topCenter,
         child: Column(
             mainAxisSize: MainAxisSize.max,
             children: [
-              AppBar(
+              if (!isLimited || Navigator.of(context).canPop()) AppBar(
                 leading: IconButton(
                   icon: Icon(Icons.arrow_back,
-                    color: Get.theme.colorScheme.onSurface
+                    color: Theme.of(context).colorScheme.onSurface
                   ),
                   onPressed: () => Get.back(),
                 ),
@@ -73,7 +74,7 @@ class RealmDetails extends StatelessWidget {
                     onPressed: () => Get.offAndToNamed("/realms/edit", arguments: realm)
                   )
                 ],
-                backgroundColor: Get.theme.canvasColor,
+                backgroundColor: Theme.of(context).canvasColor,
                 elevation: 0,
               ),
               Row(children: [
@@ -87,8 +88,8 @@ class RealmDetails extends StatelessWidget {
                       gradient: blueGreenGradient,
                       color: Colors.teal
                     ),
-                    //backgroundColor: dream.lucid ? Get.theme.primaryColor : Get.theme.disabledColor,
-                    //foregroundColor: Get.textTheme.button!.color,
+                    //backgroundColor: dream.lucid ? Theme.of(context).primaryColor : Theme.of(context).disabledColor,
+                    //foregroundColor: Theme.of(context).textTheme.button!.color,
                     child: Icon(Icons.public)
                   ),
                 ),
@@ -104,7 +105,7 @@ class RealmDetails extends StatelessWidget {
                             realm.title,
                             overflow: TextOverflow.ellipsis,
                             maxLines: 3,
-                            style: Get.textTheme.headline4
+                            style: Theme.of(context).textTheme.headline4
                           ),
                         ],
                       ),
@@ -130,13 +131,13 @@ class RealmDetails extends StatelessWidget {
                         Container(
                           height: 40,
                           alignment: Alignment.center,
-                          color: Get.theme.canvasColor,
+                          color: Theme.of(context).canvasColor,
                           child: Text("Details"),
                         ),
                         Container(
                           height: 40,
                           alignment: Alignment.center,
-                          color: Get.theme.canvasColor,
+                          color: Theme.of(context).canvasColor,
                           child: Text("Dreams"),
                         ),
                       ]
@@ -150,13 +151,13 @@ class RealmDetails extends StatelessWidget {
                             child: Material(
                               elevation: 2,
                               type: MaterialType.card,
-                              color: Get.theme.cardColor,
+                              color: Theme.of(context).cardColor,
                               borderRadius: BorderRadius.all(Radius.circular(0)),
                               child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children:[
                                 Padding(
                                   padding: const EdgeInsets.all(8.0),
                                   child: Text("Summary", 
-                                    style: Get.textTheme.subtitle1?.copyWith(fontWeight: FontWeight.w700)),
+                                    style: Theme.of(context).textTheme.subtitle1?.copyWith(fontWeight: FontWeight.w700)),
                                 ),
                                 Padding(
                                   padding: const EdgeInsets.all(8.0),
@@ -198,7 +199,7 @@ class RealmDetails extends StatelessWidget {
                             child: Material(
                               elevation: 2,
                               type: MaterialType.card,
-                              color: Get.theme.cardColor,
+                              color: Theme.of(context).cardColor,
                               borderRadius: BorderRadius.all(Radius.circular(0)),
                               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                                 // ListTile(
@@ -250,7 +251,7 @@ class RealmDetails extends StatelessWidget {
                               ])
                             ),
                           ),
-                          if (OptionalFeatures.comments) DetailsCommentsSection(dream: realm)
+                          if (!isLimited && OptionalFeatures.comments) DetailsCommentsSection(dream: realm)
                         ]
                       ),
                       dreams.length > 0 ? ListView.builder(
@@ -328,7 +329,7 @@ class _SubrecordDetailsWidgetState extends State<SubrecordDetailsWidget> {
                           ),
                           Text(
                             rec.title,
-                            style: Get.textTheme.headline6
+                            style: Theme.of(context).textTheme.headline6
                           ),
                         ],
                       ),
